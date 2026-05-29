@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* ============================================
+   全局样式 — 儿戏的文字动画工坊
+   暗色魔法工坊主题
+   ============================================ */
+
+/* 自定义 CSS 变量 */
+:root {
+  --color-bg: #0a0a1a;
+  --color-surface: #1a1a2e;
+  --color-border: #2a2a4a;
+  --color-primary: #f0c060;
+  --color-accent: #b8a0d4;
+  --color-text: #e8e8f0;
+  --color-text-dim: #8888aa;
+}
+
+/* 全局滚动条 — 金色细条 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+/* 文字选中色 */
+::selection {
+  background: rgba(240, 192, 96, 0.3);
+  color: #fff;
+}
