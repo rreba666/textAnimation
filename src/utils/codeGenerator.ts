@@ -65,6 +65,23 @@ export function generateCssCode(state: AnimationState): string {
       return generateSparkleCss(params.sparkleCount ?? 15, params.sparkleSpeed ?? 2)
     case 'drip':
       return generateDripCss(params.dripCount ?? 5, params.dripLength ?? 40, params.dripSpeed ?? 2)
+    case 'gradientorb':
+      return generateOrbCss(params.orbCount ?? 4, params.orbSpeed ?? 2, params.orbBlur ?? 60)
+    case 'skeletonwave':
+      return generateSkelCss(params.waveSpeed2 ?? 2, params.waveColor2 ?? '#b8a0d4')
+
+    // Canvas 效果 → JS 代码
+    case 'particles':
+    case 'matrixrain':
+    case 'noise':
+      return generateCanvasJs(state)
+
+    // 交互效果 → JS + CSS
+    case 'magnet':
+    case 'parallaxtilt':
+    case 'morphing':
+    case 'pagetransition':
+      return generateInteractionJs(state)
 
     // JS 依赖效果 → 返回 JS 代码
     case 'wave':
@@ -868,6 +885,101 @@ function generateDripCss(count: number, length: number, speed: number): string {
 }
 <!-- 在 .drip-text 内放置 ${count} 个墨滴元素，不同位置和延迟 -->
 ${drips}`
+}
+
+function generateCanvasJs(state: AnimationState): string {
+  const { effect } = state
+  const names: Record<string, string> = { particles: '粒子场', matrixrain: '代码雨', noise: '噪点' }
+  return `// ${names[effect] ?? effect} — Canvas 实现
+// 核心：requestAnimationFrame + Canvas 2D 绘制
+// 此类效果依赖 Canvas API，建议在 React 中使用 useEffect 管理动画循环`
+}
+
+function generateInteractionJs(state: AnimationState): string {
+  const { effect, params } = state
+  switch (effect) {
+    case 'magnet':
+      return `// 磁吸按钮 — CSS + JS
+const btn = document.querySelector('.magnet-btn')
+const strength = ${params.magnetStrength ?? 5}
+const mode = '${params.magnetMode ?? 'attract'}'
+const sign = mode === 'attract' ? 1 : -1
+btn.addEventListener('mousemove', (e) => {
+  const rect = btn.getBoundingClientRect()
+  const dx = (e.clientX - rect.left - rect.width/2) * sign * strength * 0.5
+  const dy = (e.clientY - rect.top - rect.height/2) * sign * strength * 0.5
+  btn.style.transform = \`translate(\${dx}px, \${dy}px)\`
+})
+btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0,0)' })`
+    case 'parallaxtilt':
+      return `// 倾斜视差 — CSS 3D + JS
+const card = document.querySelector('.tilt-card')
+const angle = ${params.tiltAngle ?? 20}
+card.addEventListener('mousemove', (e) => {
+  const rect = card.getBoundingClientRect()
+  const x = ((e.clientX - rect.left) / rect.width - 0.5) * angle * 2
+  const y = ((e.clientY - rect.top) / rect.height - 0.5) * -angle * 2
+  card.style.transform = \`perspective(${params.tiltPerspective ?? 600}px) rotateX(\${y}deg) rotateY(\${x}deg)\`
+})
+card.addEventListener('mouseleave', () => { card.style.transform = 'none' })`
+    case 'morphing':
+      return `// 几何变形加载 — CSS opacity 叠化
+// 三个图形分别绘制，通过 @keyframes 控制各图形 opacity 交叉淡入淡出
+const dur = ${Math.max(0.6, (params.morphSpeed ?? 1) * 1.5).toFixed(2)}s
+const paths = {
+  circle: 'M 100 20 A 40 40 0 1 1 99.9 20 Z',
+  square: 'M 65 25 L 135 25 L 135 95 L 65 95 Z',
+  triangle: 'M 100 15 L 145 95 L 55 95 Z',
+}
+
+/* CSS 关键帧：
+@keyframes morph-0 {
+  0%, 0%   { opacity: 0; transform: scale(0.7); }
+  16%      { opacity: 1; transform: scale(1); }
+  33%,100% { opacity: 0; transform: scale(0.7); }
+}
+@keyframes morph-1 { ... 33%→66% ... }
+@keyframes morph-2 { ... 66%→100% ... }
+*/
+// <path d="\${paths.circle}" style="animation: morph-0 \${dur}s infinite" />
+// <path d="\${paths.square}" style="animation: morph-1 \${dur}s infinite" />
+// <path d="\${paths.triangle}" style="animation: morph-2 \${dur}s infinite" />`
+    case 'pagetransition':
+      return `// 页面过渡 — CSS + JS
+const container = document.querySelector('.transition-container')
+const overlay = document.querySelector('.transition-overlay')
+container.addEventListener('click', () => {
+  overlay.style.transform = 'none'  // 遮罩滑入
+  setTimeout(() => {
+    // 切换内容...
+    overlay.style.transform = '${params.transitionDir === 'left' ? 'translateX(100%)' : params.transitionDir === 'right' ? 'translateX(-100%)' : params.transitionDir === 'up' ? 'translateY(100%)' : params.transitionDir === 'down' ? 'translateY(-100%)' : 'scaleX(0)'}'
+  }, ${(params.transitionSpeed ?? 1) * 600})
+})
+/* CSS: .transition-overlay { transition: transform ${params.transitionSpeed ?? 1}s ease-in-out; } */`
+    default: return '/* 暂不支持 */'
+  }
+}
+
+function generateOrbCss(_count: number, speed: number, blur: number): string {
+  return `/* 渐变光球 — 纯 CSS */
+.orb { position: absolute; border-radius: 50%; filter: blur(${blur}px); opacity: 0.5;
+  animation: orb-float ${Math.max(2, 8/speed).toFixed(1)}s ease-in-out infinite alternate; }
+@keyframes orb-float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  25% { transform: translate(30px,-20px) scale(1.15); }
+  50% { transform: translate(-10px,25px) scale(0.95); }
+  75% { transform: translate(-25px,-10px) scale(1.1); }
+}`
+}
+
+function generateSkelCss(speed: number, color: string): string {
+  return `/* 骨架波浪 — 纯 CSS */
+.skel-line {
+  background: linear-gradient(90deg, #1a1a2e 0%, ${color}44 50%, #1a1a2e 100%);
+  background-size: 200% 100%; border-radius: 4px;
+  animation: skel-wave ${Math.max(1, 5/speed).toFixed(1)}s linear infinite;
+}
+@keyframes skel-wave { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`
 }
 
 /** 0~1 转两位 hex */

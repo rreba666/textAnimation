@@ -41,6 +41,15 @@ import Twist from './effects/Twist'
 import Sparkle from './effects/Sparkle'
 import Float from './effects/Float'
 import Drip from './effects/Drip'
+import ParticleField from './effects/ParticleField'
+import GradientOrb from './effects/GradientOrb'
+import MatrixRain from './effects/MatrixRain'
+import Noise from './effects/Noise'
+import MagneticButton from './effects/MagneticButton'
+import ParallaxTilt from './effects/ParallaxTilt'
+import MorphingLoader from './effects/MorphingLoader'
+import PageTransition from './effects/PageTransition'
+import SkeletonWave from './effects/SkeletonWave'
 // 工具函数
 import { generateCssCode } from './utils/codeGenerator'
 
@@ -89,7 +98,7 @@ export default function App() {
             <span className="text-[#f0c060]">儿戏</span>
             <span className="text-[#ccc]">的文字动画工坊</span>
           </h1>
-          <span className="ml-auto text-xs text-[#555577]">35 种动效</span>
+          <span className="ml-auto text-xs text-[#555577]">44 种动效</span>
         </div>
       </header>
 
@@ -194,6 +203,24 @@ function EffectRenderer({ effect, text, params }: {
       return <Float text={text} height={params.floatHeight ?? 20} speed={params.floatSpeed ?? 2} />
     case 'drip':
       return <Drip text={text} count={params.dripCount ?? 5} length={params.dripLength ?? 40} speed={params.dripSpeed ?? 2} />
+    case 'particles':
+      return <ParticleField count={params.particleCount ?? 200} speed={params.particleSpeed ?? 2} color={params.particleColor ?? '#4ecdc4'} />
+    case 'gradientorb':
+      return <GradientOrb count={params.orbCount ?? 4} speed={params.orbSpeed ?? 2} blur={params.orbBlur ?? 60} />
+    case 'matrixrain':
+      return <MatrixRain speed={params.rainSpeed ?? 2} density={params.rainDensity ?? 40} color={params.rainColor ?? '#0f0'} />
+    case 'noise':
+      return <Noise intensity={params.noiseIntensity ?? 5} speed={params.noiseSpeed ?? 2} color={params.noiseColor ?? 'mono'} />
+    case 'magnet':
+      return <MagneticButton text={text} strength={params.magnetStrength ?? 5} mode={params.magnetMode ?? 'attract'} />
+    case 'parallaxtilt':
+      return <ParallaxTilt text={text} angle={params.tiltAngle ?? 20} perspective={params.tiltPerspective ?? 600} />
+    case 'morphing':
+      return <MorphingLoader speed={params.morphSpeed ?? 1} style={params.morphStyle ?? 'all'} />
+    case 'pagetransition':
+      return <PageTransition text={text} direction={params.transitionDir ?? 'left'} speed={params.transitionSpeed ?? 1} />
+    case 'skeletonwave':
+      return <SkeletonWave text={text} speed={params.waveSpeed2 ?? 2} color={params.waveColor2 ?? '#b8a0d4'} />
   }
 }
 
@@ -235,5 +262,14 @@ function defaultParams(effect: EffectType): EffectParams {
     case 'sparkle': return { sparkleCount: 15, sparkleSpeed: 2 }
     case 'float': return { floatHeight: 20, floatSpeed: 2 }
     case 'drip': return { dripCount: 5, dripLength: 40, dripSpeed: 2 }
+    case 'particles': return { particleCount: 200, particleSpeed: 2, particleColor: '#4ecdc4' }
+    case 'gradientorb': return { orbCount: 4, orbSpeed: 2, orbBlur: 60 }
+    case 'matrixrain': return { rainSpeed: 2, rainDensity: 40, rainColor: '#0f0' }
+    case 'noise': return { noiseIntensity: 5, noiseSpeed: 2, noiseColor: 'mono' }
+    case 'magnet': return { magnetStrength: 5, magnetMode: 'attract' }
+    case 'parallaxtilt': return { tiltAngle: 20, tiltPerspective: 600 }
+    case 'morphing': return { morphSpeed: 1, morphStyle: 'all' }
+    case 'pagetransition': return { transitionDir: 'left', transitionSpeed: 1 }
+    case 'skeletonwave': return { waveSpeed2: 2, waveColor2: '#b8a0d4' }
   }
 }

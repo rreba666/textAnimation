@@ -1,370 +1,156 @@
-import type { EffectType, EffectMeta } from '../types'
+import type { EffectType, EffectMeta, EffectCategory } from '../types'
 
 interface Props {
   current: EffectType
   onChange: (effect: EffectType) => void
 }
 
-/** 十种动效元数据 — 组件外部常量 */
-const EFFECTS: EffectMeta[] = [
-  { key: 'glitch', name: '故障 Glitch', description: '信号干扰般的抖动错位', iconChar: 'g' },
-  { key: 'wave', name: '波浪 Wave', description: '逐字起伏的弹性波浪', iconChar: 'w' },
-  { key: 'neon', name: '霓虹 Neon', description: '多层辉光的灯管效果', iconChar: 'n' },
-  { key: 'typewriter', name: '打字机 Typewriter', description: '逐字敲入的复古感', iconChar: 't' },
-  { key: 'spotlight', name: '聚光灯 Spotlight', description: '鼠标跟随的光斑探照', iconChar: 's' },
-  { key: 'bounce', name: '弹跳 Bounce', description: '字符上下弹跳的物理感', iconChar: 'b' },
-  { key: 'gradient', name: '流动渐变 Gradient', description: '渐变色彩在文字中流动', iconChar: 'd' },
-  { key: 'flicker', name: '烛光 Flicker', description: '模拟烛火不规则明暗闪烁', iconChar: 'f' },
-  { key: 'stagger', name: '交错 Stagger', description: '字符从指定方向逐一飞入', iconChar: 'r' },
-  { key: 'flip', name: '3D翻转 Flip', description: '三维空间逐字翻转', iconChar: 'p' },
-  { key: 'liquid', name: '液体 Liquid', description: 'SVG 滤镜有机液体扭曲', iconChar: 'l' },
-  { key: 'hologram', name: '全息 Hologram', description: '多层叠影渐变扫光全息投影', iconChar: 'h' },
-  { key: 'chromatic', name: '色差 Chromatic', description: 'RGB 通道分离的镜头色散', iconChar: 'c' },
-  { key: 'cube', name: '立方体 Cube', description: 'CSS 3D 旋转立方体', iconChar: '3' },
-  { key: 'scanline', name: '扫描线 Scanline', description: 'CRT 显示器的复古扫描线', iconChar: 'n' },
-  { key: 'metal', name: '金属 Metal', description: '拉丝金属光泽质感', iconChar: 'm' },
-  { key: 'glass', name: '毛玻璃 Glass', description: '磨砂半透明玻璃效果', iconChar: 'g' },
-  { key: 'fire', name: '火焰 Fire', description: '燃烧跃动的火焰文字', iconChar: 'f' },
-  { key: 'ice', name: '冰霜 Ice', description: '冷蓝冰晶闪烁效果', iconChar: 'i' },
-  { key: 'ink', name: '墨迹 Ink', description: '毛笔书写墨迹扩散', iconChar: 'k' },
-  { key: 'shake', name: '震动 Shake', description: '随机抖动的地震感', iconChar: 's' },
-  { key: 'pulse', name: '脉冲 Pulse', description: '心跳般的缩放律动', iconChar: 'u' },
-  { key: 'skew', name: '倾斜 Skew', description: '左右摇摆的倾斜变形', iconChar: 'e' },
-  { key: 'roll', name: '滚动 Roll', description: '像轮子一样旋转滚入', iconChar: 'r' },
-  { key: 'blast', name: '爆破 Blast', description: '炸开成碎片四散飞出', iconChar: 'x' },
-  { key: 'rave', name: '激光雨 Rave', description: '彩色激光束交替扫过', iconChar: 'l' },
-  { key: 'phosphor', name: '磷光 Phosphor', description: '移动后留下彩色拖尾', iconChar: 'p' },
-  { key: 'prism', name: '棱镜 Prism', description: '彩虹色散光谱折射', iconChar: 'p' },
-  { key: 'aurora', name: '极光 Aurora', description: '青绿蓝紫极光流淌', iconChar: 'a' },
-  { key: 'warp', name: '扭曲 Warp', description: '黑洞引力扭曲拉伸', iconChar: 'w' },
-  { key: 'glowpulse', name: '光晕脉冲 GlowPulse', description: '光晕像心跳扩散收缩', iconChar: 'g' },
-  { key: 'twist', name: '扭转 Twist', description: '3D 麻花扭转旋转', iconChar: 't' },
-  { key: 'sparkle', name: '星光 Sparkle', description: '表面随机闪烁星光', iconChar: 's' },
-  { key: 'float', name: '漂浮 Float', description: '羽毛般轻轻上下浮动', iconChar: 'f' },
-  { key: 'drip', name: '滴落 Drip', description: '墨水从底部滴落', iconChar: 'd' },
+const ALL: EffectMeta[] = [
+  // ===== 文字动效 =====
+  { key: 'glitch', name: 'Glitch 故障', description: '信号干扰抖动错位', category: 'text', iconChar: 'g' },
+  { key: 'wave', name: 'Wave 波浪', description: '逐字起伏弹性波浪', category: 'text', iconChar: 'w' },
+  { key: 'neon', name: 'Neon 霓虹', description: '多层辉光灯管效果', category: 'text', iconChar: 'n' },
+  { key: 'typewriter', name: 'Typewriter 打字机', description: '逐字敲入复古感', category: 'text', iconChar: 't' },
+  { key: 'spotlight', name: 'Spotlight 聚光灯', description: '鼠标跟随光斑探照', category: 'text', iconChar: 's' },
+  { key: 'bounce', name: 'Bounce 弹跳', description: '字符上下弹跳物理感', category: 'text', iconChar: 'b' },
+  { key: 'gradient', name: 'Gradient 流动渐变', description: '渐变色彩文字中流动', category: 'text', iconChar: 'd' },
+  { key: 'flicker', name: 'Flicker 烛光', description: '烛火不规则闪烁', category: 'text', iconChar: 'f' },
+  { key: 'stagger', name: 'Stagger 交错', description: '字符逐一飞入', category: 'text', iconChar: 'r' },
+  { key: 'flip', name: 'Flip 3D翻转', description: '三维空间逐字翻转', category: 'text', iconChar: 'p' },
+  { key: 'liquid', name: 'Liquid 液体', description: 'SVG滤镜有机扭曲', category: 'text', iconChar: 'l' },
+  { key: 'hologram', name: 'Hologram 全息', description: '多层叠影全息投影', category: 'text', iconChar: 'h' },
+  { key: 'chromatic', name: 'Chromatic 色差', description: 'RGB通道镜头色散', category: 'text', iconChar: 'c' },
+  { key: 'cube', name: 'Cube 立方体', description: 'CSS 3D旋转立方体', category: 'text', iconChar: '3' },
+  { key: 'scanline', name: 'Scanline 扫描线', description: 'CRT显示器扫描线', category: 'text', iconChar: 'n' },
+  { key: 'metal', name: 'Metal 金属', description: '拉丝金属光泽质感', category: 'text', iconChar: 'm' },
+  { key: 'glass', name: 'Glass 毛玻璃', description: '磨砂半透明玻璃', category: 'text', iconChar: 'g' },
+  { key: 'fire', name: 'Fire 火焰', description: '燃烧跃动的火焰', category: 'text', iconChar: 'f' },
+  { key: 'ice', name: 'Ice 冰霜', description: '冷蓝冰晶闪烁', category: 'text', iconChar: 'i' },
+  { key: 'ink', name: 'Ink 墨迹', description: '毛笔书写墨迹扩散', category: 'text', iconChar: 'k' },
+  { key: 'shake', name: 'Shake 震动', description: '随机抖动地震感', category: 'text', iconChar: 's' },
+  { key: 'pulse', name: 'Pulse 脉冲', description: '心跳般缩放律动', category: 'text', iconChar: 'u' },
+  { key: 'skew', name: 'Skew 倾斜', description: '左右摇摆倾斜变形', category: 'text', iconChar: 'e' },
+  { key: 'roll', name: 'Roll 滚动', description: '像轮子旋转滚入', category: 'text', iconChar: 'r' },
+  { key: 'blast', name: 'Blast 爆破', description: '炸开碎片四散飞出', category: 'text', iconChar: 'x' },
+  { key: 'rave', name: 'Rave 激光雨', description: '彩色激光束扫过', category: 'text', iconChar: 'l' },
+  { key: 'phosphor', name: 'Phosphor 磷光', description: '移动留下彩色拖尾', category: 'text', iconChar: 'p' },
+  { key: 'prism', name: 'Prism 棱镜', description: '彩虹色散光谱折射', category: 'text', iconChar: 'p' },
+  { key: 'aurora', name: 'Aurora 极光', description: '青绿蓝紫流淌', category: 'text', iconChar: 'a' },
+  { key: 'warp', name: 'Warp 扭曲', description: '黑洞引力拉伸', category: 'text', iconChar: 'w' },
+  { key: 'glowpulse', name: 'GlowPulse 光晕脉冲', description: '光晕心跳扩散收缩', category: 'text', iconChar: 'g' },
+  { key: 'twist', name: 'Twist 扭转', description: '3D麻花扭转旋转', category: 'text', iconChar: 't' },
+  { key: 'sparkle', name: 'Sparkle 星光', description: '表面随机闪烁星光', category: 'text', iconChar: 's' },
+  { key: 'float', name: 'Float 漂浮', description: '羽毛般浮动', category: 'text', iconChar: 'f' },
+  { key: 'drip', name: 'Drip 滴落', description: '墨水从底边滴落', category: 'text', iconChar: 'd' },
+  // ===== 背景特效 =====
+  { key: 'particles', name: 'Particle 粒子场', description: '数百粒子飘浮+鼠标交互', category: 'background', iconChar: 'a' },
+  { key: 'gradientorb', name: 'GradientOrb 渐变光球', description: '彩色光球缓慢融合', category: 'background', iconChar: 'b' },
+  { key: 'matrixrain', name: 'MatrixRain 代码雨', description: '黑客帝国数字雨', category: 'background', iconChar: 'm' },
+  { key: 'noise', name: 'Noise 噪点', description: '老电视雪花噪点', category: 'background', iconChar: 'z' },
+  // ===== 鼠标交互 =====
+  { key: 'magnet', name: 'Magnetic 磁吸', description: '按钮被鼠标吸引/排斥', category: 'interaction', iconChar: 'g' },
+  { key: 'parallaxtilt', name: 'ParallaxTilt 视差', description: '元素随鼠标3D倾斜', category: 'interaction', iconChar: 'p' },
+  // ===== 加载/转场 =====
+  { key: 'morphing', name: 'Morphing 变形加载', description: '几何图形平滑变形', category: 'transition', iconChar: 'o' },
+  { key: 'pagetransition', name: 'Transition 页面过渡', description: '页面切换动画转场', category: 'transition', iconChar: 't' },
+  { key: 'skeletonwave', name: 'Skeleton 骨架波浪', description: '加载骨架屏波浪光效', category: 'transition', iconChar: 'w' },
 ]
 
-/**
- * 效果选择器 — 双行网格按钮组
- * 10 个动效分两行排列，每行 5 个
- */
+const CATEGORIES: { key: EffectCategory; label: string }[] = [
+  { key: 'text', label: '文字动效 (35)' },
+  { key: 'background', label: '背景特效 (4)' },
+  { key: 'interaction', label: '鼠标交互 (2)' },
+  { key: 'transition', label: '加载/转场 (3)' },
+]
+
 export default function EffectSelector({ current, onChange }: Props) {
   return (
-    <div className="w-full">
-      <label className="block text-sm text-[#8888aa] mb-1.5">选择动效（共 {EFFECTS.length} 种）</label>
-      <div className="grid grid-cols-5 gap-1.5">
-        {EFFECTS.map((eff) => {
-          const isActive = current === eff.key
-          return (
-            <button
-              key={eff.key}
-              onClick={() => onChange(eff.key)}
-              title={eff.description}
-              className={`flex flex-col items-center gap-0.5 px-1.5 py-2 rounded-lg text-xs font-medium
-                transition-all duration-200
-                ${isActive
-                  ? 'bg-[#b8a0d4] text-white shadow-lg shadow-[#b8a0d4]/30 scale-105'
-                  : 'bg-[#1a1a2e] text-[#8888aa] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#ccc]'
-                }`}
-            >
-              {getEffectIcon(eff.key)}
-              <span className="leading-tight">{eff.name.split(' ')[0]}</span>
-            </button>
-          )
-        })}
-      </div>
+    <div className="w-full space-y-3">
+      <label className="block text-sm text-[#8888aa]">选择动效（共 {ALL.length} 种）</label>
+      {CATEGORIES.map((cat) => {
+        const items = ALL.filter((e) => e.category === cat.key)
+        return (
+          <div key={cat.key}>
+            <div className="text-xs text-[#555577] font-medium mb-1 border-b border-[#1a1a2e] pb-0.5">
+              {cat.label}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {items.map((eff) => {
+                const isActive = current === eff.key
+                return (
+                  <button
+                    key={eff.key}
+                    onClick={() => onChange(eff.key)}
+                    title={eff.description}
+                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[11px] font-medium
+                      transition-all duration-150 leading-tight
+                      ${isActive
+                        ? 'bg-[#b8a0d4] text-white shadow-md shadow-[#b8a0d4]/30 scale-105'
+                        : 'bg-[#1a1a2e] text-[#777] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#bbb]'
+                      }`}
+                  >
+                    <EffIcon type={eff.key} />
+                    {eff.name}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
-/** 根据效果 key 返回对应的 SVG 图标 */
-function getEffectIcon(key: EffectType) {
-  const cls = 'w-4 h-4'
-  switch (key) {
-    case 'glitch':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="1" y="3" width="14" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-          <line x1="4" y1="1" x2="4" y2="15" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2"/>
-          <line x1="12" y1="1" x2="12" y2="15" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" strokeDashoffset="0.5"/>
-        </svg>
-      )
-    case 'wave':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M1 12 Q4 4 8 8 Q12 12 15 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-        </svg>
-      )
-    case 'neon':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.2"/>
-          <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
-          <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeWidth="0.4" opacity="0.3"/>
-        </svg>
-      )
-    case 'typewriter':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="4" width="10" height="5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-          <rect x="5" y="10" width="6" height="0.8" rx="0.4" fill="currentColor" opacity="0.6"/>
-          <line x1="10" y1="5.5" x2="10" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-      )
-    case 'spotlight':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2"/>
-          <path d="M8 2 L8 1M8 14 L8 15M2 8 L1 8M14 8 L15 8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-          <circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.5"/>
-        </svg>
-      )
-    case 'bounce':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="5" cy="6" r="1.5" fill="currentColor"/>
-          <circle cx="11" cy="10" r="1.5" fill="currentColor"/>
-          <path d="M5 14 L5 7.5M11 14 L11 11.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeDasharray="2 1"/>
-          <line x1="2" y1="14" x2="14" y2="14" stroke="currentColor" strokeWidth="1"/>
-        </svg>
-      )
-    case 'gradient':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.2"/>
-          <line x1="4" y1="5" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
-        </svg>
-      )
-    case 'flicker':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M8 2 Q10 7 8 9 Q6 11 8 14" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-          <path d="M6 2 Q8 7 6 9 Q4 11 6 14" stroke="currentColor" strokeWidth="0.8" fill="none" strokeLinecap="round" opacity="0.5"/>
-        </svg>
-      )
-    case 'stagger':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="4" width="2.5" height="8" rx="0.5" fill="currentColor"/>
-          <rect x="6.5" y="2" width="2.5" height="8" rx="0.5" fill="currentColor" opacity="0.7"/>
-          <rect x="11" y="6" width="2.5" height="8" rx="0.5" fill="currentColor" opacity="0.4"/>
-        </svg>
-      )
-    case 'flip':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="3" y="4" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-          <path d="M3 8 L1 8M13 8 L15 8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-          <path d="M8 4 L8 2" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-          <path d="M6 2 Q8 0.5 10 2" stroke="currentColor" strokeWidth="0.8" fill="none"/>
-        </svg>
-      )
-    case 'liquid':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M2 10 Q5 3 8 8 Q11 13 14 6" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
-          <circle cx="5" cy="5" r="1" fill="currentColor" opacity="0.6"/>
-          <circle cx="11" cy="9" r="0.8" fill="currentColor" opacity="0.4"/>
-        </svg>
-      )
-    case 'hologram':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="1" y="3" width="8" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-          <rect x="3" y="3" width="8" height="10" rx="1" stroke="currentColor" strokeWidth="0.7" opacity="0.5"/>
-          <rect x="5" y="3" width="8" height="10" rx="1" stroke="currentColor" strokeWidth="0.4" opacity="0.3"/>
-        </svg>
-      )
-    case 'chromatic':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="4" r="2.5" fill="#ff4444" opacity="0.6"/>
-          <circle cx="8" cy="8" r="2.5" fill="#44ff44" opacity="0.6"/>
-          <circle cx="8" cy="12" r="2.5" fill="#4488ff" opacity="0.6"/>
-        </svg>
-      )
-    case 'cube':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M2 3 L8 1 L14 3 L14 11 L8 13 L2 11 Z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <line x1="8" y1="1" x2="8" y2="13" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
-          <line x1="2" y1="3" x2="8" y2="1" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
-        </svg>
-      )
-    case 'scanline':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
-          <line x1="2" y1="5" x2="14" y2="5" stroke="currentColor" strokeWidth="0.5" opacity="0.6"/>
-          <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.5" opacity="0.6"/>
-          <line x1="2" y1="11" x2="14" y2="11" stroke="currentColor" strokeWidth="0.5" opacity="0.6"/>
-        </svg>
-      )
-    case 'metal':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-          <line x1="2" y1="6" x2="14" y2="6" stroke="currentColor" strokeWidth="0.5" opacity="0.5"/>
-          <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.8" opacity="0.7"/>
-          <line x1="2" y1="10" x2="14" y2="10" stroke="currentColor" strokeWidth="0.5" opacity="0.5"/>
-        </svg>
-      )
-    case 'glass':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/>
-          <path d="M4 4 L8 2 L12 4" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/>
-          <circle cx="6" cy="7" r="0.8" fill="currentColor" opacity="0.5"/>
-          <circle cx="10" cy="9" r="0.6" fill="currentColor" opacity="0.3"/>
-        </svg>
-      )
-    case 'fire':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M8 14 Q5 10 6 7 Q7 4 8 2 Q9 5 10 7 Q11 10 8 14Z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <path d="M7.5 11 Q6.5 9 7 7.5" stroke="currentColor" strokeWidth="0.7" fill="none" opacity="0.5"/>
-        </svg>
-      )
-    case 'ice':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <polygon points="8,1 10,5 14,5 11,8 12.5,12 8,9.5 3.5,12 5,8 2,5 6,5" stroke="currentColor" strokeWidth="1" fill="none"/>
-          <circle cx="8" cy="5" r="0.6" fill="currentColor" opacity="0.6"/>
-        </svg>
-      )
-    case 'ink':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M3 8 Q5 3 8 5 Q11 7 13 3" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
-          <circle cx="8" cy="7" r="3" fill="currentColor" opacity="0.2"/>
-          <circle cx="8" cy="7" r="1" fill="currentColor" opacity="0.5"/>
-        </svg>
-      )
-    case 'shake':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M2 8 L5 5 L7 8 L9 4 L11 9 L14 5" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1.5 1.5" opacity="0.4"/>
-        </svg>
-      )
-    case 'pulse':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2"/>
-          <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="0.8" opacity="0.6"/>
-          <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.5"/>
-        </svg>
-      )
-    case 'skew':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="3" y="4" width="10" height="8" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <line x1="3" y1="12" x2="13" y2="4" stroke="currentColor" strokeWidth="0.6" strokeDasharray="1 1" opacity="0.5"/>
-        </svg>
-      )
-    case 'roll':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2"/>
-          <path d="M4 8 Q6 3 8 5 Q10 7 12 4" stroke="currentColor" strokeWidth="0.8" fill="none"/>
-          <circle cx="6" cy="5" r="0.7" fill="currentColor" opacity="0.5"/>
-        </svg>
-      )
-    case 'blast':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.6"/>
-          <line x1="8" y1="4" x2="8" y2="1" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round"/>
-          <line x1="4" y1="5" x2="2" y2="3" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round"/>
-          <line x1="12" y1="5" x2="14" y2="3" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round"/>
-          <line x1="5" y1="11" x2="3" y2="13" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round"/>
-          <line x1="11" y1="11" x2="13" y2="13" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round"/>
-        </svg>
-      )
-    case 'rave':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <line x1="4" y1="2" x2="4" y2="14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          <line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" opacity="0.7"/>
-          <line x1="12" y1="2" x2="12" y2="14" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" opacity="0.4"/>
-        </svg>
-      )
-    case 'phosphor':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="4" cy="8" r="2" fill="currentColor" opacity="0.9"/>
-          <circle cx="7" cy="8" r="1.5" fill="currentColor" opacity="0.5"/>
-          <circle cx="9.5" cy="8" r="1" fill="currentColor" opacity="0.25"/>
-          <line x1="6" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1" opacity="0.3"/>
-        </svg>
-      )
-    case 'prism':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <polygon points="4,2 12,2 6,14 2,14" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <line x1="13" y1="3" x2="13" y2="6" stroke="#ff4444" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
-          <line x1="13.5" y1="6" x2="13.5" y2="8" stroke="#ff8800" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-          <line x1="14" y1="8" x2="14" y2="10" stroke="#44ff44" strokeWidth="1.2" strokeLinecap="round" opacity="0.5"/>
-          <line x1="14" y1="10" x2="14" y2="12" stroke="#4488ff" strokeWidth="1" strokeLinecap="round" opacity="0.4"/>
-        </svg>
-      )
-    case 'aurora':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M1 12 Q4 3 8 8 Q12 13 15 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.8"/>
-          <path d="M1 10 Q4 5 8 10 Q12 15 15 6" stroke="currentColor" strokeWidth="0.8" fill="none" strokeLinecap="round" opacity="0.4"/>
-        </svg>
-      )
-    case 'warp':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.2"/>
-          <ellipse cx="8" cy="8" rx="1.5" ry="3" fill="currentColor" opacity="0.5"/>
-          <path d="M3 3 Q8 1 13 3" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.4"/>
-          <path d="M3 13 Q8 15 13 13" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.4"/>
-        </svg>
-      )
-    case 'glowpulse':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.8"/>
-          <circle cx="8" cy="8" r="4" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-          <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="0.6" opacity="0.25"/>
-          <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.4"/>
-        </svg>
-      )
-    case 'twist':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M4 3 Q8 8 4 13" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <path d="M12 3 Q8 8 12 13" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <line x1="8" y1="3" x2="8" y2="13" stroke="currentColor" strokeWidth="0.8" strokeDasharray="1 1" opacity="0.4"/>
-        </svg>
-      )
-    case 'sparkle':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <polygon points="8,1 9.5,5.5 14,6 10.5,9 11.5,13.5 8,11 4.5,13.5 5.5,9 2,6 6.5,5.5" stroke="currentColor" strokeWidth="0.8" fill="none"/>
-          <circle cx="8" cy="7" r="0.8" fill="currentColor" opacity="0.6"/>
-        </svg>
-      )
-    case 'float':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <path d="M4 12 Q8 4 12 12" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-          <line x1="4" y1="14" x2="4" y2="12" stroke="currentColor" strokeWidth="0.6" opacity="0.3"/>
-          <line x1="12" y1="14" x2="12" y2="12" stroke="currentColor" strokeWidth="0.6" opacity="0.3"/>
-        </svg>
-      )
-    case 'drip':
-      return (
-        <svg className={cls} viewBox="0 0 16 16" fill="none">
-          <rect x="6" y="2" width="4" height="8" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-          <path d="M8 10 Q8 15 8 14" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-          <circle cx="5" cy="14" r="0.5" fill="currentColor" opacity="0.4"/>
-          <circle cx="11" cy="13" r="0.4" fill="currentColor" opacity="0.3"/>
-        </svg>
-      )
+/** 小图标方便快速识别效果类别 */
+function EffIcon({ type }: { type: EffectType }) {
+  const cls = 'w-3 h-3 shrink-0'
+  // 简化的通用图标映射
+  const shapes: Record<string, React.JSX.Element> = {
+    glitch: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/><line x1="4" y1="1" x2="4" y2="15" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/></svg>,
+    wave: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M1 12 Q4 4 8 8 Q12 12 15 4" stroke="currentColor" strokeWidth="1.3" fill="none"/></svg>,
+    neon: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.2"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="0.6" opacity="0.5"/></svg>,
+    typewriter: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="5" rx="1" stroke="currentColor" strokeWidth="1"/><line x1="10" y1="5.5" x2="10" y2="8" stroke="currentColor" strokeWidth="1.5"/></svg>,
+    spotlight: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1"/><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.4"/></svg>,
+    bounce: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="5" cy="6" r="1.5" fill="currentColor"/><circle cx="11" cy="10" r="1.5" fill="currentColor"/><line x1="2" y1="14" x2="14" y2="14" stroke="currentColor" strokeWidth="0.8"/></svg>,
+    gradient: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1"/><line x1="4" y1="5" x2="12" y2="11" stroke="currentColor" strokeWidth="1.2" opacity="0.6"/></svg>,
+    flicker: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M8 2 Q10 7 8 9 Q6 11 8 14" stroke="currentColor" strokeWidth="1.3" fill="none"/></svg>,
+    stagger: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="2" height="8" rx="0.5" fill="currentColor"/><rect x="7" y="2" width="2" height="8" rx="0.5" fill="currentColor" opacity="0.6"/><rect x="12" y="6" width="2" height="8" rx="0.5" fill="currentColor" opacity="0.3"/></svg>,
+    flip: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="3" y="4" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1"/><path d="M8 4 L8 2M6 2 Q8 0.5 10 2" stroke="currentColor" strokeWidth="0.7" fill="none"/></svg>,
+    liquid: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 10 Q5 3 8 8 Q11 13 14 6" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>,
+    hologram: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="8" height="10" rx="1" stroke="currentColor" strokeWidth="1"/><rect x="3" y="3" width="8" height="10" rx="1" stroke="currentColor" strokeWidth="0.6" opacity="0.4"/></svg>,
+    chromatic: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="4" r="2.5" fill="#f44" opacity="0.5"/><circle cx="8" cy="8" r="2.5" fill="#4f4" opacity="0.5"/><circle cx="8" cy="12" r="2.5" fill="#48f" opacity="0.5"/></svg>,
+    cube: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 3 L8 1 L14 3 L14 11 L8 13 L2 11 Z" stroke="currentColor" strokeWidth="1"/></svg>,
+    scanline: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1"/><line x1="2" y1="5" x2="14" y2="5" stroke="currentColor" strokeWidth="0.4" opacity="0.5"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.4"/><line x1="2" y1="11" x2="14" y2="11" stroke="currentColor" strokeWidth="0.4" opacity="0.5"/></svg>,
+    metal: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" strokeWidth="1"/><line x1="2" y1="6" x2="14" y2="6" stroke="currentColor" strokeWidth="0.5"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="0.7"/></svg>,
+    glass: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1" opacity="0.5"/></svg>,
+    fire: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M8 14 Q5 10 6 7 Q7 4 8 2 Q9 5 10 7 Q11 10 8 14Z" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    ice: <svg className={cls} viewBox="0 0 16 16" fill="none"><polygon points="8,1 10,5 14,5 11,8 12.5,12 8,9.5 3.5,12 5,8 2,5 6,5" stroke="currentColor" strokeWidth="0.8" fill="none"/></svg>,
+    ink: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M3 8 Q5 3 8 5 Q11 7 13 3" stroke="currentColor" strokeWidth="1.2" fill="none"/><circle cx="8" cy="7" r="1.5" fill="currentColor" opacity="0.3"/></svg>,
+    shake: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 8 L5 5 L7 8 L9 4 L11 9 L14 5" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    pulse: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="0.7" opacity="0.5"/></svg>,
+    skew: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="3" y="4" width="10" height="8" stroke="currentColor" strokeWidth="1"/><line x1="3" y1="12" x2="13" y2="4" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1 1"/></svg>,
+    roll: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1"/><path d="M4 8 Q6 3 8 5 Q10 7 12 4" stroke="currentColor" strokeWidth="0.7" fill="none"/></svg>,
+    blast: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.5"/><line x1="8" y1="4" x2="8" y2="1" stroke="currentColor" strokeWidth="0.7"/><line x1="4" y1="5" x2="2" y2="3" stroke="currentColor" strokeWidth="0.5"/><line x1="12" y1="5" x2="14" y2="3" stroke="currentColor" strokeWidth="0.5"/></svg>,
+    rave: <svg className={cls} viewBox="0 0 16 16" fill="none"><line x1="4" y1="2" x2="4" y2="14" stroke="currentColor" strokeWidth="1"/><line x1="8" y1="2" x2="8" y2="14" stroke="currentColor" strokeWidth="0.7" opacity="0.6"/><line x1="12" y1="2" x2="12" y2="14" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/></svg>,
+    phosphor: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="2" fill="currentColor" opacity="0.8"/><circle cx="7" cy="8" r="1.5" fill="currentColor" opacity="0.4"/></svg>,
+    prism: <svg className={cls} viewBox="0 0 16 16" fill="none"><polygon points="4,2 12,2 6,14 2,14" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    aurora: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M1 12 Q4 3 8 8 Q12 13 15 4" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>,
+    warp: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1"/><ellipse cx="8" cy="8" rx="1.5" ry="3" fill="currentColor" opacity="0.4"/></svg>,
+    glowpulse: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.7"/><circle cx="8" cy="8" r="4.5" stroke="currentColor" strokeWidth="0.8" opacity="0.4"/></svg>,
+    twist: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M4 3 Q8 8 4 13" stroke="currentColor" strokeWidth="1" fill="none"/><path d="M12 3 Q8 8 12 13" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    sparkle: <svg className={cls} viewBox="0 0 16 16" fill="none"><polygon points="8,1 9.5,5.5 14,6 10.5,9 11.5,13.5 8,11 4.5,13.5 5.5,9 2,6 6.5,5.5" stroke="currentColor" strokeWidth="0.7" fill="none"/></svg>,
+    float: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M4 12 Q8 4 12 12" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    drip: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="6" y="2" width="4" height="8" rx="2" stroke="currentColor" strokeWidth="1"/><path d="M8 10 Q8 15 8 14" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>,
+    particles: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="4" cy="4" r="1" fill="currentColor"/><circle cx="10" cy="6" r="0.7" fill="currentColor" opacity="0.6"/><circle cx="6" cy="11" r="0.8" fill="currentColor" opacity="0.5"/><circle cx="13" cy="10" r="0.6" fill="currentColor" opacity="0.4"/></svg>,
+    gradientorb: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="6" cy="7" r="4" fill="currentColor" opacity="0.3"/><circle cx="10" cy="9" r="3" fill="currentColor" opacity="0.2"/></svg>,
+    matrixrain: <svg className={cls} viewBox="0 0 16 16" fill="none"><text x="1" y="12" fontSize="14" fontWeight="bold" fill="currentColor">010</text></svg>,
+    noise: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1"/><text x="3" y="12" fontSize="8" fill="currentColor" opacity="0.5">/////</text></svg>,
+    magnet: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M4 2 H8 A4 4 0 0 1 12 6 V12 A2 2 0 0 1 8 12 V6 A1 1 0 0 0 6 6 V12 A2 2 0 0 1 2 12 V6 A4 4 0 0 1 4 2Z" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    parallaxtilt: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1"/><line x1="2" y1="5" x2="14" y2="3" stroke="currentColor" strokeWidth="0.5"/></svg>,
+    morphing: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1"/><rect x="4" y="4" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="0.7" opacity="0.5"/></svg>,
+    pagetransition: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="12" rx="0.5" stroke="currentColor" strokeWidth="1"/><polygon points="9,5 14,8 9,11" fill="currentColor" opacity="0.6"/></svg>,
+    skeletonwave: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="2.5" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="7" width="8" height="2.5" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="11" width="10" height="2.5" rx="1" fill="currentColor" opacity="0.3"/></svg>,
   }
+  return shapes[type] ?? <span className="w-3 h-3 inline-block rounded-sm bg-current opacity-40" />
 }

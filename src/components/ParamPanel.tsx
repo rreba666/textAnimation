@@ -123,12 +123,40 @@ export default function ParamPanel({ effect, params, onChange }: Props) {
             onChange={(v) => onChange('rollDirection', v)} />
         )}
 
-        {/* 激光雨双色 */}
-        {effect === 'rave' && (
-          <>
-            <ColorRow label="激光色1" value={params.raveColor1 ?? '#ff0088'} onChange={(v) => onChange('raveColor1', v)} />
-            <ColorRow label="激光色2" value={params.raveColor2 ?? '#00ffff'} onChange={(v) => onChange('raveColor2', v)} />
-          </>
+        {/* 激光雨 */}
+        {effect === 'rave' && (<>
+          <ColorRow label="激光色1" value={params.raveColor1 ?? '#ff0088'} onChange={(v) => onChange('raveColor1', v)} />
+          <ColorRow label="激光色2" value={params.raveColor2 ?? '#00ffff'} onChange={(v) => onChange('raveColor2', v)} />
+        </>)}
+        {/* 粒子 & 代码雨 & 拖尾 & 骨架波浪颜色 */}
+        {effect === 'particles' && (
+          <ColorRow label="粒子颜色" value={params.particleColor ?? '#4ecdc4'} onChange={(v) => onChange('particleColor', v)} />
+        )}
+        {effect === 'matrixrain' && (
+          <ColorRow label="雨滴颜色" value={params.rainColor ?? '#0f0'} onChange={(v) => onChange('rainColor', v)} />
+        )}
+        {effect === 'skeletonwave' && (
+          <ColorRow label="波浪颜色" value={params.waveColor2 ?? '#b8a0d4'} onChange={(v) => onChange('waveColor2', v)} />
+        )}
+        {effect === 'noise' && (
+          <SelectRow label="噪点模式" value={params.noiseColor ?? 'mono'}
+            options={[{ value: 'mono', label: '黑白' }, { value: 'color', label: '彩色' }]}
+            onChange={(v) => onChange('noiseColor', v)} />
+        )}
+        {effect === 'magnet' && (
+          <SelectRow label="磁力模式" value={params.magnetMode ?? 'attract'}
+            options={[{ value: 'attract', label: '吸引' }, { value: 'repel', label: '排斥' }]}
+            onChange={(v) => onChange('magnetMode', v)} />
+        )}
+        {effect === 'morphing' && (
+          <SelectRow label="变形模式" value={params.morphStyle ?? 'all'}
+            options={[{ value: 'circle-square', label: '圆⇄方' }, { value: 'circle-triangle', label: '圆⇄三角' }, { value: 'all', label: '全形态' }]}
+            onChange={(v) => onChange('morphStyle', v)} />
+        )}
+        {effect === 'pagetransition' && (
+          <SelectRow label="转场方向" value={params.transitionDir ?? 'left'}
+            options={['left','right','up','down','fade'].map((d) => ({ value: d, label: {left:'自左',right:'自右',up:'自上',down:'自下',fade:'淡入淡出'}[d] ?? d }))}
+            onChange={(v) => onChange('transitionDir', v)} />
         )}
       </div>
     </div>
@@ -387,6 +415,48 @@ function getSliders(effect: EffectType): ParamSlider[] {
         { key: 'dripLength', label: '滴落长度', min: 10, max: 100, step: 10, unit: 'px' },
         { key: 'dripSpeed', label: '滴落速度', min: 1, max: 5, step: 1 },
       ]
+    case 'particles':
+      return [
+        { key: 'particleCount', label: '粒子数量', min: 50, max: 500, step: 50 },
+        { key: 'particleSpeed', label: '移动速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'gradientorb':
+      return [
+        { key: 'orbCount', label: '光球数量', min: 2, max: 8, step: 1 },
+        { key: 'orbSpeed', label: '移动速度', min: 1, max: 5, step: 1 },
+        { key: 'orbBlur', label: '模糊半径', min: 20, max: 100, step: 10, unit: 'px' },
+      ]
+    case 'matrixrain':
+      return [
+        { key: 'rainSpeed', label: '下落速度', min: 1, max: 5, step: 1 },
+        { key: 'rainDensity', label: '雨滴密度', min: 10, max: 100, step: 10 },
+      ]
+    case 'noise':
+      return [
+        { key: 'noiseIntensity', label: '噪点强度', min: 1, max: 10, step: 1 },
+        { key: 'noiseSpeed', label: '闪烁速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'magnet':
+      return [
+        { key: 'magnetStrength', label: '磁力强度', min: 1, max: 10, step: 1 },
+      ]
+    case 'parallaxtilt':
+      return [
+        { key: 'tiltAngle', label: '倾斜角度', min: 5, max: 45, step: 5, unit: 'deg' },
+        { key: 'tiltPerspective', label: '透视距离', min: 200, max: 1000, step: 100, unit: 'px' },
+      ]
+    case 'morphing':
+      return [
+        { key: 'morphSpeed', label: '变形速度', min: 0.5, max: 3, step: 0.5, unit: 's' },
+      ]
+    case 'pagetransition':
+      return [
+        { key: 'transitionSpeed', label: '转场速度', min: 0.5, max: 3, step: 0.5, unit: 's' },
+      ]
+    case 'skeletonwave':
+      return [
+        { key: 'waveSpeed2', label: '波浪速度', min: 1, max: 5, step: 1 },
+      ]
   }
 }
 
@@ -427,6 +497,15 @@ function getParamValue(params: EffectParams, key: string): number {
     sparkleCount: 15, sparkleSpeed: 2,
     floatHeight: 20, floatSpeed: 2,
     dripCount: 5, dripLength: 40, dripSpeed: 2,
+    particleCount: 200, particleSpeed: 2,
+    orbCount: 4, orbSpeed: 2, orbBlur: 60,
+    rainSpeed: 2, rainDensity: 40,
+    noiseIntensity: 5, noiseSpeed: 2,
+    magnetStrength: 5,
+    tiltAngle: 20, tiltPerspective: 600,
+    morphSpeed: 1,
+    transitionSpeed: 1,
+    waveSpeed2: 2,
   }
   const val = (params as Record<string, unknown>)[key]
   return typeof val === 'number' ? val : (defaults[key] ?? 0)
