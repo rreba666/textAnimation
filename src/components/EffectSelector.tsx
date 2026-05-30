@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { EffectType, EffectMeta, EffectCategory } from '../types'
 
 interface Props {
@@ -54,58 +55,113 @@ const ALL: EffectMeta[] = [
   { key: 'morphing', name: 'Morphing 变形加载', description: '几何图形平滑变形', category: 'transition', iconChar: 'o' },
   { key: 'pagetransition', name: 'Transition 页面过渡', description: '页面切换动画转场', category: 'transition', iconChar: 't' },
   { key: 'skeletonwave', name: 'Skeleton 骨架波浪', description: '加载骨架屏波浪光效', category: 'transition', iconChar: 'w' },
+  // ===== 3D 空间 =====
+  { key: 'floatcube', name: 'FloatCube 漂浮立方体', description: '3D立方体缓慢旋转漂浮', category: '3d', iconChar: 'c' },
+  { key: 'depthcards', name: 'DepthCards 深度卡片', description: '多层卡片景深视差', category: '3d', iconChar: 'd' },
+  { key: 'spiralgalaxy', name: 'SpiralGalaxy 螺旋星系', description: '粒子螺旋旋转银河', category: '3d', iconChar: 'g' },
+  // ===== 光影/反射 =====
+  { key: 'glossy', name: 'Glossy 镜面反射', description: '文字水面倒影反射', category: 'light', iconChar: 'r' },
+  { key: 'lensflare', name: 'LensFlare 镜头光晕', description: '相机镜头反光效果', category: 'light', iconChar: 'l' },
+  { key: 'caustics', name: 'Caustics 焦散', description: '水底光斑游动', category: 'light', iconChar: 'w' },
+  // ===== 扭曲/变形 =====
+  { key: 'flagwave', name: 'FlagWave 旗帜飘动', description: '旗帜般波浪飘动', category: 'distort', iconChar: 'f' },
+  { key: 'melt', name: 'Melt 融化', description: '蜡烛融化滴落效果', category: 'distort', iconChar: 'm' },
+  // ===== 创意/趣味 =====
+  { key: 'confetti', name: 'Confetti 彩带爆裂', description: '点击彩带星星爆裂', category: 'creative', iconChar: 'x' },
+  // ===== 鼠标交互（扩展） =====
+  { key: 'ripplebg', name: 'RippleBg 背景水波', description: '点击产生水波扩散', category: 'interaction', iconChar: 'w' },
+  { key: 'customcursor', name: 'CustomCursor 自定义光标', description: '自定义带拖尾的光标', category: 'interaction', iconChar: 'c' },
+  { key: 'hoverglow', name: 'HoverGlow 悬停光晕', description: '鼠标悬停跟随光晕', category: 'interaction', iconChar: 'g' },
+  { key: 'dragrotate', name: 'DragRotate 拖拽旋转', description: '拖拽旋转3D物体', category: 'interaction', iconChar: 'd' },
+  // ===== 加载/进度 =====
+  { key: 'circularprogress', name: 'Circular 环形进度', description: '环形进度条动画', category: 'transition', iconChar: 'p' },
+  // ===== 数字/滚动 =====
+  { key: 'countup', name: 'CountUp 数字滚动', description: '数字计数滚动动画', category: 'scroll', iconChar: 'n' },
+  { key: 'marquee', name: 'Marquee 跑马灯', description: '文字无限横向滚动', category: 'scroll', iconChar: 'm' },
+  // ===== 背景/装饰 =====
+  { key: 'animatedborder', name: 'AnimBorder 动态边框', description: '流动渐变边框', category: 'decor', iconChar: 'b' },
+  { key: 'blob', name: 'Blob 变形气泡', description: '史莱姆变形融合', category: 'decor', iconChar: 'b' },
 ]
 
-const CATEGORIES: { key: EffectCategory; label: string }[] = [
-  { key: 'text', label: '文字动效 (35)' },
-  { key: 'background', label: '背景特效 (4)' },
-  { key: 'interaction', label: '鼠标交互 (2)' },
-  { key: 'transition', label: '加载/转场 (3)' },
+/** 分类定义：key、标签、SVG 图标、颜色标识 */
+const CATEGORIES: { key: EffectCategory; label: string; count: number; color: string }[] = [
+  { key: 'text', label: '文字动效', count: 35, color: '#f0c060' },
+  { key: 'background', label: '背景特效', count: 4, color: '#4ecdc4' },
+  { key: 'interaction', label: '鼠标交互', count: 7, color: '#ff6b6b' },
+  { key: 'transition', label: '加载/进度', count: 4, color: '#a55eea' },
+  { key: '3d', label: '3D 空间', count: 3, color: '#45b7d1' },
+  { key: 'light', label: '光影/反射', count: 3, color: '#ffe66d' },
+  { key: 'distort', label: '扭曲/变形', count: 2, color: '#ff9a76' },
+  { key: 'creative', label: '创意/趣味', count: 1, color: '#ff88cc' },
+  { key: 'scroll', label: '数字/滚动', count: 2, color: '#45b7d1' },
+  { key: 'decor', label: '背景/装饰', count: 2, color: '#ffe66d' },
 ]
 
 export default function EffectSelector({ current, onChange }: Props) {
+  // 根据当前选中的效果自动定位所属分类
+  const currentMeta = ALL.find((e) => e.key === current)
+  const defaultCat = currentMeta?.category ?? 'text'
+  const [activeCat, setActiveCat] = useState<EffectCategory>(defaultCat)
+
+  const items = ALL.filter((e) => e.category === activeCat)
+
   return (
     <div className="w-full space-y-3">
-      <label className="block text-sm text-[#8888aa]">选择动效（共 {ALL.length} 种）</label>
-      {CATEGORIES.map((cat) => {
-        const items = ALL.filter((e) => e.category === cat.key)
-        return (
-          <div key={cat.key}>
-            <div className="text-xs text-[#555577] font-medium mb-1 border-b border-[#1a1a2e] pb-0.5">
+      {/* 分类标签行 — 美观的胶囊按钮 */}
+      <div className="flex flex-wrap gap-1">
+        {CATEGORIES.map((cat) => {
+          const isActive = activeCat === cat.key
+          return (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCat(cat.key)}
+              className={`relative px-2.5 py-1 rounded-full text-[11px] font-medium
+                transition-all duration-200 border
+                ${isActive
+                  ? 'border-current text-white shadow-md'
+                  : 'bg-transparent border-[#2a2a4a] text-[#666] hover:border-[#555] hover:text-[#999]'
+                }`}
+              style={isActive ? { backgroundColor: `${cat.color}22`, borderColor: `${cat.color}88`, color: cat.color } : {}}
+            >
+              {/* 小圆点指示器 */}
+              <span className="inline-block w-1.5 h-1.5 rounded-full mr-1 align-[-1px]"
+                    style={{ backgroundColor: isActive ? cat.color : '#666' }} />
               {cat.label}
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {items.map((eff) => {
-                const isActive = current === eff.key
-                return (
-                  <button
-                    key={eff.key}
-                    onClick={() => onChange(eff.key)}
-                    title={eff.description}
-                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[11px] font-medium
-                      transition-all duration-150 leading-tight
-                      ${isActive
-                        ? 'bg-[#b8a0d4] text-white shadow-md shadow-[#b8a0d4]/30 scale-105'
-                        : 'bg-[#1a1a2e] text-[#777] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#bbb]'
-                      }`}
-                  >
-                    <EffIcon type={eff.key} />
-                    {eff.name}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
+              <span className="ml-0.5 text-[10px] opacity-60">{cat.count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 效果列表 — 仅显示当前分类 */}
+      <div className="flex flex-wrap gap-1 min-h-[32px]">
+        {items.map((eff) => {
+          const isActive = current === eff.key
+          return (
+            <button
+              key={eff.key}
+              onClick={() => onChange(eff.key)}
+              title={eff.description}
+              className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[11px] font-medium
+                transition-all duration-150 leading-tight
+                ${isActive
+                  ? 'bg-[#b8a0d4] text-white shadow-md shadow-[#b8a0d4]/30 scale-105'
+                  : 'bg-[#1a1a2e] text-[#777] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#bbb]'
+                }`}
+            >
+              <EffIcon type={eff.key} />
+              {eff.name}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-/** 小图标方便快速识别效果类别 */
+/** 小图标 */
 function EffIcon({ type }: { type: EffectType }) {
   const cls = 'w-3 h-3 shrink-0'
-  // 简化的通用图标映射
   const shapes: Record<string, React.JSX.Element> = {
     glitch: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="1" stroke="currentColor" strokeWidth="1.2"/><line x1="4" y1="1" x2="4" y2="15" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 2"/></svg>,
     wave: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M1 12 Q4 4 8 8 Q12 12 15 4" stroke="currentColor" strokeWidth="1.3" fill="none"/></svg>,
@@ -151,6 +207,24 @@ function EffIcon({ type }: { type: EffectType }) {
     morphing: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1"/><rect x="4" y="4" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="0.7" opacity="0.5"/></svg>,
     pagetransition: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="12" rx="0.5" stroke="currentColor" strokeWidth="1"/><polygon points="9,5 14,8 9,11" fill="currentColor" opacity="0.6"/></svg>,
     skeletonwave: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="2.5" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="7" width="8" height="2.5" rx="1" fill="currentColor" opacity="0.3"/><rect x="2" y="11" width="10" height="2.5" rx="1" fill="currentColor" opacity="0.3"/></svg>,
+    floatcube: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 3 L8 1 L14 3 L14 11 L8 13 L2 11 Z" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    depthcards: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="1.5" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="0.7" opacity="0.5"/><rect x="5" y="5" width="6" height="6" rx="0.8" stroke="currentColor" strokeWidth="1.2"/></svg>,
+    spiralgalaxy: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="1" fill="currentColor"/><path d="M8 2 A6 6 0 1 1 2 8" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="0.5 2"/></svg>,
+    glossy: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="5" rx="1" stroke="currentColor" strokeWidth="1.2"/><rect x="3" y="8" width="10" height="5" rx="1" stroke="currentColor" strokeWidth="0.7" opacity="0.4"/></svg>,
+    lensflare: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" fill="currentColor" opacity="0.5"/><circle cx="10" cy="9" r="1.5" fill="currentColor" opacity="0.3"/><circle cx="12" cy="11" r="1" fill="currentColor" opacity="0.2"/></svg>,
+    caustics: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 10 Q5 4 8 8 Q11 12 14 5" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.6"/></svg>,
+    flagwave: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 3 L14 6 L2 9 L14 12" stroke="currentColor" strokeWidth="1.2" fill="none"/><line x1="2" y1="1" x2="2" y2="14" stroke="currentColor" strokeWidth="1"/></svg>,
+    melt: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="5" y="2" width="6" height="8" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M5 8 Q4 12 6 13 Q8 14 10 13 Q12 12 11 8" stroke="currentColor" strokeWidth="1" fill="none"/></svg>,
+    confetti: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="3" y="5" width="2" height="1" rx="0.3" fill="currentColor" opacity="0.7"/><rect x="8" y="3" width="3" height="1.5" rx="0.4" fill="currentColor" opacity="0.5"/><rect x="6" y="10" width="2" height="1" rx="0.3" fill="currentColor" opacity="0.6"/><rect x="11" y="8" width="2.5" height="1" rx="0.3" fill="currentColor" opacity="0.4"/></svg>,
+    ripplebg: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.6"/><circle cx="8" cy="8" r="4.5" stroke="currentColor" strokeWidth="0.7" opacity="0.4"/><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="0.4" opacity="0.2"/></svg>,
+    customcursor: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M3 3 L10 8 L7 9 L11 14" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    hoverglow: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" strokeWidth="1"/><circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="0.5" opacity="0.3"/></svg>,
+    dragrotate: <svg className={cls} viewBox="0 0 16 16" fill="none"><path d="M2 8 Q8 2 14 8 Q8 14 2 8" stroke="currentColor" strokeWidth="1" fill="none"/><polygon points="13,5 13,11 7,8" fill="currentColor" opacity="0.5"/></svg>,
+    circularprogress: <svg className={cls} viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" opacity="0.2"/><path d="M8 2 A6 6 0 0 1 14 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    countup: <svg className={cls} viewBox="0 0 16 16" fill="none"><text x="2" y="13" fontSize="12" fontWeight="bold" fill="currentColor">123</text></svg>,
+    marquee: <svg className={cls} viewBox="0 0 16 16" fill="none"><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="1.2"/><polygon points="12,5 14,8 12,11" fill="currentColor"/></svg>,
+    animatedborder: <svg className={cls} viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="0.6" opacity="0.4"/></svg>,
+    blob: <svg className={cls} viewBox="0 0 16 16" fill="none"><ellipse cx="6" cy="7" rx="3.5" ry="4" stroke="currentColor" strokeWidth="1"/><ellipse cx="10" cy="9" rx="2.5" ry="3" stroke="currentColor" strokeWidth="0.8" opacity="0.5"/></svg>,
   }
   return shapes[type] ?? <span className="w-3 h-3 inline-block rounded-sm bg-current opacity-40" />
 }

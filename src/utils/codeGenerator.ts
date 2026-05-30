@@ -69,11 +69,35 @@ export function generateCssCode(state: AnimationState): string {
       return generateOrbCss(params.orbCount ?? 4, params.orbSpeed ?? 2, params.orbBlur ?? 60)
     case 'skeletonwave':
       return generateSkelCss(params.waveSpeed2 ?? 2, params.waveColor2 ?? '#b8a0d4')
+    case 'glossy':
+      return generateGlossyCss(params.reflectBlur ?? 3, params.reflectDistance ?? 20, params.reflectOpacity ?? 0.5)
+    case 'flagwave':
+      return generateFlagCss(params.flagAmplitude ?? 20, params.flagFrequency ?? 2, params.flagSpeed ?? 2)
+    case 'floatcube':
+      return generateFloatCubeCss(params.cubeFloatSize ?? 200, params.cubeFloatSpeed ?? 3, params.cubeFloatColor ?? '#f0c060')
+    case 'depthcards':
+      return generateDepthCardsJs(params.depthLayers ?? 4, params.depthAngle ?? 15)
+    case 'lensflare':
+      return generateLensFlareCss(params.flareIntensity ?? 5, params.flareColor ?? '#ffffff', params.flareAngle ?? 45)
+    case 'melt':
+      return generateMeltCss(params.meltAmount ?? 5, params.meltSpeed ?? 2, params.meltColor ?? '#ff6b6b')
+    case 'circularprogress':
+      return generateCircularCss(params.progressValue ?? 75, params.progressSpeed ?? 2, params.progressColor ?? '#f0c060')
+    case 'marquee':
+      return generateMarqueeCss(params.marqueeSpeed ?? 4, params.marqueeDirection ?? 'left')
+    case 'animatedborder':
+      return generateAnimatedBorderCss(params.borderSpeed ?? 2, params.borderColor1 ?? '#b8a0d4', params.borderColor2 ?? '#f0c060')
+    case 'blob':
+      return generateBlobCss(params.blobCount ?? 3, params.blobSpeed ?? 2, params.blobColor ?? '#b8a0d4')
 
     // Canvas 效果 → JS 代码
     case 'particles':
     case 'matrixrain':
     case 'noise':
+    case 'spiralgalaxy':
+    case 'caustics':
+    case 'confetti':
+    case 'ripplebg':
       return generateCanvasJs(state)
 
     // 交互效果 → JS + CSS
@@ -81,6 +105,9 @@ export function generateCssCode(state: AnimationState): string {
     case 'parallaxtilt':
     case 'morphing':
     case 'pagetransition':
+    case 'customcursor':
+    case 'hoverglow':
+    case 'dragrotate':
       return generateInteractionJs(state)
 
     // JS 依赖效果 → 返回 JS 代码
@@ -91,6 +118,7 @@ export function generateCssCode(state: AnimationState): string {
     case 'stagger':
     case 'blast':
     case 'float':
+    case 'countup':
       return generateJsCode(state)
 
     default:
@@ -257,6 +285,19 @@ const tl = gsap.timeline({ repeat: -1, yoyo: true })
 tl.to(el, { y: ${-Math.abs(params.floatHeight ?? 20)}, duration: ${params.floatSpeed ?? 2}, ease: 'sine.inOut' }, 0)
 tl.to(el, { x: ${Math.round((params.floatHeight ?? 20) * 0.3)}, duration: ${(params.floatSpeed ?? 2) * 1.3}, ease: 'sine.inOut' }, 0)
 tl.to(el, { rotation: ${Math.round((params.floatHeight ?? 20) * 0.1)}, duration: ${(params.floatSpeed ?? 2) * 1.7}, ease: 'sine.inOut' }, 0)`
+
+    case 'countup':
+      return `// 数字滚动计数 — JS
+let display = ${params.countFrom ?? 0}
+const target = ${params.countTo ?? 8888}
+const step = Math.max(1, Math.abs(target - display) / ${Math.round(40 / (params.countSpeed ?? 2))})
+function tick() {
+  display += step * (target > display ? 1 : -1)
+  if ((step > 0 && display >= target) || (step < 0 && display <= target)) display = target
+  else requestAnimationFrame(tick)
+  document.querySelector('.countup-display').textContent = Math.round(display).toLocaleString()
+}
+tick()`
 
     default:
       return '/* 暂不支持 */'
@@ -944,6 +985,52 @@ const paths = {
 // <path d="\${paths.circle}" style="animation: morph-0 \${dur}s infinite" />
 // <path d="\${paths.square}" style="animation: morph-1 \${dur}s infinite" />
 // <path d="\${paths.triangle}" style="animation: morph-2 \${dur}s infinite" />`
+    case 'hoverglow':
+      return `// 悬停光晕 — CSS + JS
+const el = document.querySelector('.hover-glow')
+el.addEventListener('mousemove', (e) => {
+  const rect = el.getBoundingClientRect()
+  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(0)
+  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(0)
+  el.style.setProperty('--glow-x', x + '%')
+  el.style.setProperty('--glow-y', y + '%')
+})
+el.addEventListener('mouseleave', () => { el.style.setProperty('--glow-active', '0') })
+el.addEventListener('mouseenter', () => { el.style.setProperty('--glow-active', '1') })
+/* CSS: radgrad(circle ${params.glowRadius ?? 80}px at var(--glow-x) var(--glow-y), ${params.glowColor ?? '#b8a0d4'}44, transparent 70%) */`
+    case 'dragrotate':
+      return `// 拖拽旋转 — CSS 3D + JS
+let dragging = false, lastX = 0, lastY = 0, rotX = -15, rotY = 20
+const card = document.querySelector('.drag-card')
+card.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY })
+card.addEventListener('mousemove', (e) => {
+  if (!dragging) return
+  rotX += (e.clientY - lastY) * ${params.dragSpeed ?? 3} * 0.3
+  rotY += (e.clientX - lastX) * ${params.dragSpeed ?? 3} * 0.3
+  card.style.transform = \`perspective(600px) rotateX(\${rotX}deg) rotateY(\${rotY}deg)\`
+  lastX = e.clientX; lastY = e.clientY
+})
+card.addEventListener('mouseup', () => { dragging = false })
+card.addEventListener('mouseleave', () => { dragging = false })`
+    case 'customcursor':
+      return `// 自定义光标 — Canvas 全屏覆盖
+const canvas = document.createElement('canvas')
+canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;pointer-events:none'
+document.body.appendChild(canvas)
+const ctx = canvas.getContext('2d')
+const dots = []
+window.addEventListener('mousemove', (e) => { dots.push({ x: e.clientX, y: e.clientY, life: 1 }) })
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  for (let i = dots.length-1; i >= 0; i--) {
+    dots[i].life -= 0.03
+    if (dots[i].life <= 0) { dots.splice(i,1); continue }
+    ctx.beginPath(); ctx.arc(dots[i].x, dots[i].y, ${params.cursorSize ?? 20} * dots[i].life * 0.5, 0, PI*2)
+    ctx.fillStyle = '${params.cursorColor ?? '#b8a0d4'}'; ctx.globalAlpha = dots[i].life * 0.6; ctx.fill()
+  }
+  requestAnimationFrame(draw)
+}
+draw()`
     case 'pagetransition':
       return `// 页面过渡 — CSS + JS
 const container = document.querySelector('.transition-container')
@@ -980,6 +1067,148 @@ function generateSkelCss(speed: number, color: string): string {
   animation: skel-wave ${Math.max(1, 5/speed).toFixed(1)}s linear infinite;
 }
 @keyframes skel-wave { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`
+}
+
+function generateGlossyCss(blur: number, distance: number, opacity: number): string {
+  return `/* 镜面反射 — 纯 CSS */
+.glossy-main { font-size: 3rem; font-weight: bold; color: #f0c060; }
+.glossy-reflect {
+  transform: scaleY(-1) translateY(${distance}px);
+  opacity: ${opacity.toFixed(1)}; filter: blur(${blur * 0.3}px);
+  mask-image: linear-gradient(0deg, transparent 0%, rgba(0,0,0,0.3) 40%, #000 100%);
+  -webkit-mask-image: linear-gradient(0deg, transparent 0%, rgba(0,0,0,0.3) 40%, #000 100%);
+}`
+}
+
+function generateFlagCss(amplitude: number, frequency: number, speed: number): string {
+  const dur = Math.max(1, 5 / speed).toFixed(2)
+  return `/* 旗帜飘动 — 纯 CSS */
+.flag-char {
+  display: inline-block;
+  animation: flag-wave ${dur}s ease-in-out infinite;
+}
+@keyframes flag-wave {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  25%  { transform: translateY(${-amplitude * 0.6}px) rotate(${frequency * 2}deg); }
+  50%  { transform: translateY(0) rotate(0deg); }
+  75%  { transform: translateY(${amplitude * 0.6}px) rotate(${-frequency * 2}deg); }
+}`
+}
+
+function generateFloatCubeCss(size: number, speed: number, color: string): string {
+  const dur = Math.max(2, 10 / speed).toFixed(1)
+  return `/* 漂浮立方体 — CSS 3D */
+.cube-scene { width: ${size}px; height: ${size}px; perspective: 800px; animation: cube-float ${dur}s ease-in-out infinite; }
+.cube-rotator { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: cube-spin ${dur}s linear infinite; }
+.cube-face { position: absolute; width: ${size}px; height: ${size}px; background: #1a1a2e; border: 2px solid ${color}; }
+@keyframes cube-spin { 0% { transform: rotateX(-20deg) rotateY(0deg); } 100% { transform: rotateX(-20deg) rotateY(360deg); } }
+@keyframes cube-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-${Math.round(size*0.125)}px); } }`
+}
+
+function generateDepthCardsJs(layers: number, angle: number): string {
+  return `// 深度卡片 — JS 鼠标视差
+const container = document.querySelector('.depth-container')
+container.addEventListener('mousemove', (e) => {
+  const rect = container.getBoundingClientRect()
+  const x = (e.clientX - rect.left) / rect.width - 0.5
+  const y = (e.clientY - rect.top) / rect.height - 0.5
+  document.querySelectorAll('.depth-card').forEach((card, i) => {
+    const factor = (i + 1) * (${angle} / ${layers}) * 0.8
+    card.style.transform = \`translateX(\${x * factor}px) translateY(\${y * factor}px)\`
+  })
+})
+container.addEventListener('mouseleave', () => {
+  document.querySelectorAll('.depth-card').forEach(c => c.style.transform = '')
+})`
+}
+
+function generateLensFlareCss(intensity: number, color: string, angle: number): string {
+  return `/* 镜头光晕 — 纯 CSS */
+.lens-source {
+  width: ${intensity * 5}px; height: ${intensity * 5}px; border-radius: 50%;
+  background: ${color};
+  box-shadow: 0 0 ${intensity*4}px ${color}, 0 0 ${intensity*8}px ${color}88, 0 0 ${intensity*16}px ${color}44;
+}
+/* 光斑沿 ${angle}deg 方向分布，使用 radial-gradient(ellipse) 模拟 */`
+}
+
+function generateMeltCss(amount: number, speed: number, color: string): string {
+  return `/* 融化效果 — SVG 滤镜 + CSS */
+.melt-text {
+  font-size: 3rem; font-weight: bold; color: ${color};
+  filter: url(#melt-filter);
+  text-shadow: 0 ${amount * 3}px ${amount * 2}px ${color}44;
+  animation: melt ${Math.max(1, 5/speed).toFixed(1)}s ease-in-out infinite;
+}
+
+<svg width="0" height="0">
+  <filter id="melt-filter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.04" numOctaves="3" result="noise">
+      <animate attributeName="baseFrequency" values="0.02 0.04;0.03 0.06;0.02 0.04" dur="3s" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="${amount * 3}" xChannelSelector="R" yChannelSelector="G"/>
+    <feGaussianBlur stdDeviation="${amount * 0.3}"/>
+  </filter>
+</svg>
+@keyframes melt { 0%,100% { filter: url(#melt-filter) brightness(1); } 50% { filter: url(#melt-filter) brightness(0.85); } }`
+}
+
+function generateCircularCss(value: number, speed: number, color: string): string {
+  const r = 45; const circ = 2 * Math.PI * r
+  // speed 参数用于 JS 动画缓动速率（见 generateJsCode）
+  return `/* 环形进度条 — SVG + JS，动画速度 ${speed} */
+<svg width="120" height="120" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="${r}" fill="none" stroke="#1a1a2e" stroke-width="6"/>
+  <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="6"
+    stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ - (value/100)*circ}"
+    transform="rotate(-90 50 50)" />
+  <text x="50" y="54" text-anchor="middle" font-size="18" fill="#fff">${value}%</text>
+</svg>`
+}
+
+function generateMarqueeCss(speed: number, dir: string): string {
+  const dur = Math.max(1, 18 / speed).toFixed(1)
+  return `/* 跑马灯 — CSS */
+.marquee-track { display: flex; white-space: nowrap; animation: marquee ${dur}s linear infinite; }
+.marquee-content { display: inline-block; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(${dir === 'left' ? '-' : ''}50%); } }`
+}
+
+function generateAnimatedBorderCss(speed: number, color1: string, color2: string): string {
+  const dur = Math.max(1, 6 / speed).toFixed(1)
+  return `/* 动态边框 — CSS */
+.animated-border {
+  padding: 2px; border-radius: 12px;
+  background: linear-gradient(90deg, ${color1}, ${color2}, ${color1});
+  background-size: 200% 100%;
+  animation: border-flow ${dur}s linear infinite;
+}
+.animated-border > * { border-radius: 10px; background: #0a0a1a; }
+@keyframes border-flow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }`
+}
+
+function generateBlobCss(count: number, speed: number, color: string): string {
+  const dur = Math.max(2, 10 / speed).toFixed(1)
+  // 生成 count 个不同位置和大小的气泡
+  const blobs = Array.from({ length: count }, (_, i) => {
+    const seed = i * 137.5
+    return `  <div class="blob" style="width:${40+(seed*0.7)%40}px;height:${32+(seed*1.1)%30}px;left:${30+(seed%140)}%;top:${30+((seed*1.7)%80)}%;animation-delay:${i*0.8}s"></div>`
+  }).join('\n')
+  return `/* 变形气泡 — SVG 滤镜 + CSS */
+<!-- 共 ${count} 个气泡 -->
+.blob-container { filter: url(#blob-goo); position: relative; }
+.blob {
+  position: absolute; border-radius: 50%; background: ${color};
+  animation: blob-float ${dur}s ease-in-out infinite alternate;
+}
+${blobs}
+@keyframes blob-float {
+  0%,100% { transform: translate(0,0) scale(1); }
+  25% { transform: translate(20px,-15px) scale(1.1); }
+  50% { transform: translate(-10px,10px) scale(0.95); }
+  75% { transform: translate(-20px,-5px) scale(1.05); }
+}
+<svg><filter id="blob-goo"><feGaussianBlur stdDeviation="14"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 28 -12"/></filter></svg>`
 }
 
 /** 0~1 转两位 hex */

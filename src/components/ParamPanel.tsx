@@ -138,6 +138,50 @@ export default function ParamPanel({ effect, params, onChange }: Props) {
         {effect === 'skeletonwave' && (
           <ColorRow label="波浪颜色" value={params.waveColor2 ?? '#b8a0d4'} onChange={(v) => onChange('waveColor2', v)} />
         )}
+        {effect === 'floatcube' && (
+          <ColorRow label="立方体色" value={params.cubeFloatColor ?? '#f0c060'} onChange={(v) => onChange('cubeFloatColor', v)} />
+        )}
+        {effect === 'spiralgalaxy' && (
+          <ColorRow label="星系色调" value={params.galaxyColor ?? '#b8a0d4'} onChange={(v) => onChange('galaxyColor', v)} />
+        )}
+        {effect === 'lensflare' && (
+          <ColorRow label="光晕颜色" value={params.flareColor ?? '#ffffff'} onChange={(v) => onChange('flareColor', v)} />
+        )}
+        {effect === 'caustics' && (
+          <ColorRow label="光斑颜色" value={params.causticColor ?? '#4ecdc4'} onChange={(v) => onChange('causticColor', v)} />
+        )}
+        {effect === 'melt' && (
+          <ColorRow label="熔融色" value={params.meltColor ?? '#ff6b6b'} onChange={(v) => onChange('meltColor', v)} />
+        )}
+        {effect === 'ripplebg' && (
+          <ColorRow label="波纹颜色" value={params.rippleBgColor ?? '#4ecdc4'} onChange={(v) => onChange('rippleBgColor', v)} />
+        )}
+        {effect === 'customcursor' && (
+          <ColorRow label="光标颜色" value={params.cursorColor ?? '#b8a0d4'} onChange={(v) => onChange('cursorColor', v)} />
+        )}
+        {effect === 'hoverglow' && (
+          <ColorRow label="光晕颜色" value={params.glowColor ?? '#b8a0d4'} onChange={(v) => onChange('glowColor', v)} />
+        )}
+        {effect === 'circularprogress' && (
+          <ColorRow label="进度颜色" value={params.progressColor ?? '#f0c060'} onChange={(v) => onChange('progressColor', v)} />
+        )}
+        {effect === 'animatedborder' && (<>
+          <ColorRow label="颜色1" value={params.borderColor1 ?? '#b8a0d4'} onChange={(v) => onChange('borderColor1', v)} />
+          <ColorRow label="颜色2" value={params.borderColor2 ?? '#f0c060'} onChange={(v) => onChange('borderColor2', v)} />
+        </>)}
+        {effect === 'blob' && (
+          <ColorRow label="气泡颜色" value={params.blobColor ?? '#b8a0d4'} onChange={(v) => onChange('blobColor', v)} />
+        )}
+        {effect === 'dragrotate' && (
+          <SelectRow label="旋转轴" value={params.dragAxis ?? 'xy'}
+            options={[{ value: 'xy', label: 'XY 双轴' }, { value: 'x', label: 'X 轴' }, { value: 'y', label: 'Y 轴' }]}
+            onChange={(v) => onChange('dragAxis', v)} />
+        )}
+        {effect === 'marquee' && (
+          <SelectRow label="滚动方向" value={params.marqueeDirection ?? 'left'}
+            options={[{ value: 'left', label: '向左' }, { value: 'right', label: '向右' }]}
+            onChange={(v) => onChange('marqueeDirection', v)} />
+        )}
         {effect === 'noise' && (
           <SelectRow label="噪点模式" value={params.noiseColor ?? 'mono'}
             options={[{ value: 'mono', label: '黑白' }, { value: 'color', label: '彩色' }]}
@@ -457,6 +501,98 @@ function getSliders(effect: EffectType): ParamSlider[] {
       return [
         { key: 'waveSpeed2', label: '波浪速度', min: 1, max: 5, step: 1 },
       ]
+    case 'floatcube':
+      return [
+        { key: 'cubeFloatSize', label: '立方体大小', min: 100, max: 400, step: 50, unit: 'px' },
+        { key: 'cubeFloatSpeed', label: '漂浮速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'depthcards':
+      return [
+        { key: 'depthLayers', label: '卡片层数', min: 2, max: 6, step: 1 },
+        { key: 'depthAngle', label: '倾斜幅度', min: 5, max: 30, step: 5 },
+        { key: 'depthSpeed', label: '响应速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'spiralgalaxy':
+      return [
+        { key: 'galaxyParticles', label: '粒子数量', min: 100, max: 500, step: 50 },
+        { key: 'galaxySpeed', label: '旋转速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'glossy':
+      return [
+        { key: 'reflectBlur', label: '倒影模糊', min: 1, max: 10, step: 1 },
+        { key: 'reflectDistance', label: '倒影距离', min: 5, max: 50, step: 5, unit: 'px' },
+        { key: 'reflectOpacity', label: '倒影透明度', min: 0.1, max: 0.9, step: 0.1 },
+      ]
+    case 'lensflare':
+      return [
+        { key: 'flareIntensity', label: '光晕强度', min: 1, max: 10, step: 1 },
+        { key: 'flareAngle', label: '光晕角度', min: 0, max: 360, step: 15, unit: 'deg' },
+      ]
+    case 'caustics':
+      return [
+        { key: 'causticSpeed', label: '流动速度', min: 1, max: 5, step: 1 },
+        { key: 'causticIntensity', label: '光斑强度', min: 1, max: 10, step: 1 },
+      ]
+    case 'flagwave':
+      return [
+        { key: 'flagAmplitude', label: '飘动幅度', min: 5, max: 50, step: 5, unit: 'px' },
+        { key: 'flagFrequency', label: '波浪频率', min: 1, max: 5, step: 1 },
+        { key: 'flagSpeed', label: '飘动速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'melt':
+      return [
+        { key: 'meltAmount', label: '融化程度', min: 1, max: 10, step: 1 },
+        { key: 'meltSpeed', label: '融化速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'confetti':
+      return [
+        { key: 'confettiCount', label: '彩带数量', min: 20, max: 200, step: 20 },
+        { key: 'confettiSpread', label: '扩散范围', min: 50, max: 300, step: 25, unit: 'px' },
+        { key: 'confettiSpeed', label: '下落速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'ripplebg':
+      return [
+        { key: 'rippleBgSize', label: '波纹大小', min: 50, max: 300, step: 25, unit: 'px' },
+        { key: 'rippleBgSpeed', label: '扩散速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'customcursor':
+      return [
+        { key: 'cursorSize', label: '光标大小', min: 10, max: 50, step: 5, unit: 'px' },
+        { key: 'cursorTrail', label: '拖尾长度', min: 1, max: 10, step: 1 },
+      ]
+    case 'hoverglow':
+      return [
+        { key: 'glowRadius', label: '光晕半径', min: 20, max: 150, step: 10, unit: 'px' },
+        { key: 'glowIntensity', label: '光晕强度', min: 1, max: 10, step: 1 },
+      ]
+    case 'dragrotate':
+      return [
+        { key: 'dragSpeed', label: '旋转速度', min: 1, max: 10, step: 1 },
+      ]
+    case 'circularprogress':
+      return [
+        { key: 'progressValue', label: '进度值', min: 0, max: 100, step: 5, unit: '%' },
+        { key: 'progressSpeed', label: '动画速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'countup':
+      return [
+        { key: 'countFrom', label: '起始值', min: 0, max: 9999, step: 100 },
+        { key: 'countTo', label: '目标值', min: 1, max: 9999, step: 100 },
+        { key: 'countSpeed', label: '滚动速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'marquee':
+      return [
+        { key: 'marqueeSpeed', label: '滚动速度', min: 1, max: 10, step: 1 },
+      ]
+    case 'animatedborder':
+      return [
+        { key: 'borderSpeed', label: '流动速度', min: 1, max: 5, step: 1 },
+      ]
+    case 'blob':
+      return [
+        { key: 'blobCount', label: '气泡数量', min: 1, max: 6, step: 1 },
+        { key: 'blobSpeed', label: '变形速度', min: 1, max: 5, step: 1 },
+      ]
   }
 }
 
@@ -506,6 +642,24 @@ function getParamValue(params: EffectParams, key: string): number {
     morphSpeed: 1,
     transitionSpeed: 1,
     waveSpeed2: 2,
+    cubeFloatSize: 200, cubeFloatSpeed: 3,
+    depthLayers: 4, depthAngle: 15, depthSpeed: 2,
+    galaxyParticles: 200, galaxySpeed: 2,
+    reflectBlur: 3, reflectDistance: 20, reflectOpacity: 0.5,
+    flareIntensity: 5, flareAngle: 45,
+    causticSpeed: 2, causticIntensity: 5,
+    flagAmplitude: 20, flagFrequency: 2, flagSpeed: 2,
+    meltAmount: 5, meltSpeed: 2,
+    confettiCount: 80, confettiSpread: 200, confettiSpeed: 2,
+    rippleBgSize: 150, rippleBgSpeed: 3,
+    cursorSize: 20, cursorTrail: 5,
+    glowRadius: 80, glowIntensity: 5,
+    dragSpeed: 3,
+    progressValue: 75, progressSpeed: 2,
+    countFrom: 0, countTo: 8888, countSpeed: 2,
+    marqueeSpeed: 4,
+    borderSpeed: 2,
+    blobCount: 3, blobSpeed: 2,
   }
   const val = (params as Record<string, unknown>)[key]
   return typeof val === 'number' ? val : (defaults[key] ?? 0)

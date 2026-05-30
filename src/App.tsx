@@ -50,6 +50,24 @@ import ParallaxTilt from './effects/ParallaxTilt'
 import MorphingLoader from './effects/MorphingLoader'
 import PageTransition from './effects/PageTransition'
 import SkeletonWave from './effects/SkeletonWave'
+import FloatCube from './effects/FloatCube'
+import DepthCards from './effects/DepthCards'
+import SpiralGalaxy from './effects/SpiralGalaxy'
+import Glossy from './effects/Glossy'
+import LensFlare from './effects/LensFlare'
+import Caustics from './effects/Caustics'
+import FlagWave from './effects/FlagWave'
+import Melt from './effects/Melt'
+import Confetti from './effects/Confetti'
+import RippleBg from './effects/RippleBg'
+import CustomCursor from './effects/CustomCursor'
+import HoverGlow from './effects/HoverGlow'
+import DragRotate from './effects/DragRotate'
+import CircularProgress from './effects/CircularProgress'
+import CountUp from './effects/CountUp'
+import Marquee from './effects/Marquee'
+import AnimatedBorder from './effects/AnimatedBorder'
+import Blob from './effects/Blob'
 // 工具函数
 import { generateCssCode } from './utils/codeGenerator'
 
@@ -98,7 +116,7 @@ export default function App() {
             <span className="text-[#f0c060]">儿戏</span>
             <span className="text-[#ccc]">的文字动画工坊</span>
           </h1>
-          <span className="ml-auto text-xs text-[#555577]">44 种动效</span>
+          <span className="ml-auto text-xs text-[#555577]">62 种动效</span>
         </div>
       </header>
 
@@ -221,6 +239,42 @@ function EffectRenderer({ effect, text, params }: {
       return <PageTransition text={text} direction={params.transitionDir ?? 'left'} speed={params.transitionSpeed ?? 1} />
     case 'skeletonwave':
       return <SkeletonWave text={text} speed={params.waveSpeed2 ?? 2} color={params.waveColor2 ?? '#b8a0d4'} />
+    case 'floatcube':
+      return <FloatCube size={params.cubeFloatSize ?? 200} speed={params.cubeFloatSpeed ?? 3} color={params.cubeFloatColor ?? '#f0c060'} />
+    case 'depthcards':
+      return <DepthCards layers={params.depthLayers ?? 4} angle={params.depthAngle ?? 15} speed={params.depthSpeed ?? 2} />
+    case 'spiralgalaxy':
+      return <SpiralGalaxy particles={params.galaxyParticles ?? 200} speed={params.galaxySpeed ?? 2} color={params.galaxyColor ?? '#b8a0d4'} />
+    case 'glossy':
+      return <Glossy text={text} blur={params.reflectBlur ?? 3} distance={params.reflectDistance ?? 20} opacity={params.reflectOpacity ?? 0.5} />
+    case 'lensflare':
+      return <LensFlare intensity={params.flareIntensity ?? 5} color={params.flareColor ?? '#ffffff'} angle={params.flareAngle ?? 45} />
+    case 'caustics':
+      return <Caustics speed={params.causticSpeed ?? 2} intensity={params.causticIntensity ?? 5} color={params.causticColor ?? '#4ecdc4'} />
+    case 'flagwave':
+      return <FlagWave text={text} amplitude={params.flagAmplitude ?? 20} frequency={params.flagFrequency ?? 2} speed={params.flagSpeed ?? 2} />
+    case 'melt':
+      return <Melt text={text} amount={params.meltAmount ?? 5} speed={params.meltSpeed ?? 2} color={params.meltColor ?? '#ff6b6b'} />
+    case 'confetti':
+      return <Confetti count={params.confettiCount ?? 80} spread={params.confettiSpread ?? 200} speed={params.confettiSpeed ?? 2} />
+    case 'ripplebg':
+      return <RippleBg size={params.rippleBgSize ?? 150} speed={params.rippleBgSpeed ?? 3} color={params.rippleBgColor ?? '#4ecdc4'} />
+    case 'customcursor':
+      return <CustomCursor size={params.cursorSize ?? 20} trail={params.cursorTrail ?? 5} color={params.cursorColor ?? '#b8a0d4'} />
+    case 'hoverglow':
+      return <HoverGlow text={text} radius={params.glowRadius ?? 80} intensity={params.glowIntensity ?? 5} color={params.glowColor ?? '#b8a0d4'} />
+    case 'dragrotate':
+      return <DragRotate text={text} speed={params.dragSpeed ?? 3} axis={params.dragAxis ?? 'xy'} />
+    case 'circularprogress':
+      return <CircularProgress value={params.progressValue ?? 75} speed={params.progressSpeed ?? 2} color={params.progressColor ?? '#f0c060'} />
+    case 'countup':
+      return <CountUp from={params.countFrom ?? 0} to={params.countTo ?? 8888} speed={params.countSpeed ?? 2} />
+    case 'marquee':
+      return <Marquee text={text} speed={params.marqueeSpeed ?? 4} direction={params.marqueeDirection ?? 'left'} />
+    case 'animatedborder':
+      return <AnimatedBorder text={text} speed={params.borderSpeed ?? 2} width={params.borderWidth ?? 2} color1={params.borderColor1 ?? '#b8a0d4'} color2={params.borderColor2 ?? '#f0c060'} />
+    case 'blob':
+      return <Blob count={params.blobCount ?? 3} speed={params.blobSpeed ?? 2} color={params.blobColor ?? '#b8a0d4'} />
   }
 }
 
@@ -271,5 +325,23 @@ function defaultParams(effect: EffectType): EffectParams {
     case 'morphing': return { morphSpeed: 1, morphStyle: 'all' }
     case 'pagetransition': return { transitionDir: 'left', transitionSpeed: 1 }
     case 'skeletonwave': return { waveSpeed2: 2, waveColor2: '#b8a0d4' }
+    case 'floatcube': return { cubeFloatSize: 200, cubeFloatSpeed: 3, cubeFloatColor: '#f0c060' }
+    case 'depthcards': return { depthLayers: 4, depthAngle: 15, depthSpeed: 2 }
+    case 'spiralgalaxy': return { galaxyParticles: 200, galaxySpeed: 2, galaxyColor: '#b8a0d4' }
+    case 'glossy': return { reflectBlur: 3, reflectDistance: 20, reflectOpacity: 0.5 }
+    case 'lensflare': return { flareIntensity: 5, flareColor: '#ffffff', flareAngle: 45 }
+    case 'caustics': return { causticSpeed: 2, causticIntensity: 5, causticColor: '#4ecdc4' }
+    case 'flagwave': return { flagAmplitude: 20, flagFrequency: 2, flagSpeed: 2 }
+    case 'melt': return { meltAmount: 5, meltSpeed: 2, meltColor: '#ff6b6b' }
+    case 'confetti': return { confettiCount: 80, confettiSpread: 200, confettiSpeed: 2 }
+    case 'ripplebg': return { rippleBgSize: 150, rippleBgSpeed: 3, rippleBgColor: '#4ecdc4' }
+    case 'customcursor': return { cursorSize: 20, cursorTrail: 5, cursorColor: '#b8a0d4' }
+    case 'hoverglow': return { glowRadius: 80, glowIntensity: 5, glowColor: '#b8a0d4' }
+    case 'dragrotate': return { dragSpeed: 3, dragAxis: 'xy' }
+    case 'circularprogress': return { progressValue: 75, progressSpeed: 2, progressColor: '#f0c060' }
+    case 'countup': return { countFrom: 0, countTo: 8888, countSpeed: 2 }
+    case 'marquee': return { marqueeSpeed: 4, marqueeDirection: 'left' }
+    case 'animatedborder': return { borderSpeed: 2, borderWidth: 2, borderColor1: '#b8a0d4', borderColor2: '#f0c060' }
+    case 'blob': return { blobCount: 3, blobSpeed: 2, blobColor: '#b8a0d4' }
   }
 }
