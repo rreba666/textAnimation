@@ -115,48 +115,54 @@ export default function App() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-[#e8e8f0]">
+    <div className="min-h-screen bg-[#0a0a1a] text-[#e8e8f0] overflow-x-hidden">
       {/* 顶部标题栏 */}
-      <header className="border-b border-[#2a2a4a] bg-[#0d0d1f] px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center gap-3">
-          <svg className="w-7 h-7 text-[#f0c060]" viewBox="0 0 24 24" fill="none">
+      <header className="border-b border-[#2a2a4a] bg-[#0d0d1f] px-5 py-2.5">
+        <div className="max-w-6xl mx-auto flex items-center gap-2">
+          <svg className="w-5 h-5 text-[#f0c060]" viewBox="0 0 24 24" fill="none">
             <path d="M15 4l5 5L8 21l-5-5L15 4z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
             <circle cx="7" cy="7" r="1.5" fill="#b8a0d4"/>
             <circle cx="13" cy="12" r="1" fill="#f0c060"/>
             <line x1="2" y1="22" x2="6" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-          <h1 className="text-xl font-bold tracking-wide">
+          <h1 className="text-base font-bold tracking-wide">
             <span className="text-[#f0c060]">儿戏</span>
             <span className="text-[#ccc]">的文字动画工坊</span>
           </h1>
-          <span className="ml-auto text-xs text-[#555577]">62 种动效</span>
+          <span className="ml-auto text-[11px] text-[#555577]">62 种动效</span>
         </div>
       </header>
 
-      {/* 主内容区 */}
-      <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
-        {/* 预设模板 */}
+      {/* 预设模板 — 紧凑横排滚动 */}
+      <div className="border-b border-[#1a1a2e] bg-[#0a0a1a]/50 px-5 py-2">
         <PresetSelector onApply={handlePresetApply} />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <TextInput text={text} onChange={setText} />
-          <EffectSelector current={effect} onChange={handleEffectChange} />
+      {/* 主内容区 — 左右两栏 */}
+      <main className="max-w-6xl mx-auto px-5 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4">
+          {/* 左栏：控制面板 */}
+          <div className="space-y-3">
+            <TextInput text={text} onChange={setText} />
+            <EffectSelector current={effect} onChange={handleEffectChange} />
+            <ParamPanel effect={effect} params={params} onChange={handleParamChange} />
+          </div>
+
+          {/* 右栏：预览 + 代码 */}
+          <div className="space-y-3">
+            <Preview>
+              {combo ? (
+                <ComboRenderer text={combo.text} combo={combo.combo} bg={combo.bg} />
+              ) : (
+                <EffectRenderer effect={effect} text={text} params={params} />
+              )}
+            </Preview>
+            <CodeOutput code={code} />
+          </div>
         </div>
-
-        <Preview>
-          {combo ? (
-            <ComboRenderer text={combo.text} combo={combo.combo} bg={combo.bg} />
-          ) : (
-            <EffectRenderer effect={effect} text={text} params={params} />
-          )}
-        </Preview>
-
-        <ParamPanel effect={effect} params={params} onChange={handleParamChange} />
-
-        <CodeOutput code={code} />
       </main>
 
-      <footer className="text-center py-6 text-xs text-[#555577]">
+      <footer className="text-center py-3 text-[11px] text-[#444466] border-t border-[#1a1a2e]">
         儿戏的动画工坊 — React + TypeScript + GSAP | 62 种文字动效，所见即所得
       </footer>
     </div>

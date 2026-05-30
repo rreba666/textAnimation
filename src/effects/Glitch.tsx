@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 
 interface Props {
   text: string
-  /** 故障强度 1~10 */
   intensity: number
-  /** 动画速度 1~5 */
   speed: number
+  color1?: string
+  color2?: string
 }
 
 /**
@@ -13,8 +13,7 @@ interface Props {
  * 通过 ::before / ::after 伪元素的分层偏移 + clip-path 切割产生故障感
  * 动态生成 <style> 标签注入关键帧，利用 React 的 useMemo 缓存避免重复计算
  */
-export default function Glitch({ text, intensity, speed }: Props) {
-  // 根据参数动态生成 CSS，仅当参数变化时重新计算
+export default function Glitch({ text, intensity, speed, color1 = '#ff4444', color2 = '#44ffff' }: Props) {
   const css = useMemo(() => {
     const offset = Math.round(intensity * 0.4)
     const duration = Math.max(0.3, 2 / speed).toFixed(2)
@@ -36,13 +35,13 @@ export default function Glitch({ text, intensity, speed }: Props) {
 }
 .glitch-text::before {
   left: ${-offset}px;
-  color: #ff4444;
+  color: ${color1};
   animation: glitch-before ${duration}s infinite linear alternate-reverse;
   clip-path: inset(0 0 50% 0);
 }
 .glitch-text::after {
   left: ${offset}px;
-  color: #44ffff;
+  color: ${color2};
   animation: glitch-after ${duration}s infinite linear alternate-reverse;
   clip-path: inset(50% 0 0 0);
 }
@@ -69,7 +68,7 @@ export default function Glitch({ text, intensity, speed }: Props) {
           fontSize: '3rem',
           fontWeight: 'bold',
           color: '#fff',
-          textShadow: '2px 2px 0 rgba(255,0,0,0.6), -2px -2px 0 rgba(0,255,255,0.6)',
+          textShadow: `2px 2px 0 ${color1}99, -2px -2px 0 ${color2}99`,
         }}
       >
         {text || '预览文字'}

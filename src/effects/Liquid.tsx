@@ -4,10 +4,9 @@ interface Props {
   text: string
   /** 扭曲强度 1~20 */
   intensity: number
-  /** 流动速度 1~5 */
   speed: number
-  /** 噪点缩放 50~300（越小越细密） */
   scale: number
+  color?: string
 }
 
 let uid = 0
@@ -17,7 +16,7 @@ let uid = 0
  * 利用 SVG 滤镜的湍流噪点 + 位移映射实现有机液体扭曲
  * 纯声明式，无需 JS 动画循环
  */
-export default function Liquid({ text, intensity, speed, scale }: Props) {
+export default function Liquid({ text, intensity, speed, scale, color = '#4dc9f6' }: Props) {
   // 每次参数变化生成唯一 filter ID，避免多实例冲突
   const filterId = useMemo(() => `liquid-filter-${uid++}`, [intensity, speed, scale])
 
@@ -56,7 +55,7 @@ export default function Liquid({ text, intensity, speed, scale }: Props) {
         style={{
           fontSize: '3rem',
           fontWeight: 'bold',
-          color: '#4dc9f6',
+          color,
           filter: `url(#${filterId})`,
         }}
       >

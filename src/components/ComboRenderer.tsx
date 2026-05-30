@@ -24,18 +24,23 @@ interface Props {
 export default function ComboRenderer({ text, combo, bg }: Props) {
   const all = [...bg, ...combo]
 
-  // 分离扫描线（特殊处理）和普通效果
+  // 分离扫描线（特殊全屏叠加处理）
   const scanlineCfg = all.find((c) => c.effect === 'scanline')
-  const layers = all.filter((c) => c.effect !== 'scanline').map((c) => ({
+  const others = all.filter((c) => c.effect !== 'scanline')
+
+  // 关键规则：只有最后一个效果作为"文字层"显示实体文字
+  // 前面所有效果归为辉光/装饰层，文字透明只留视觉效果
+  const layers = others.map((c, i) => ({
     ...c,
-    kind: getLayerKind(c.effect),
+    kind: i === others.length - 1 ? 'text' : (isDecoEffect(c.effect) ? 'deco' : 'glow'),
   }))
 
   return (
     <div className="relative w-full min-h-[160px]">
       <style>{`
 .combo-glow * { color: transparent !important; -webkit-text-fill-color: transparent !important; }
-.combo-deco { pointer-events: none; }
+.combo-glow { opacity: 0.35; }
+.combo-deco { pointer-events: none; opacity: 0.5; }
 @keyframes combo-scan-move {
   0%   { background-position: 0 0; }
   100% { background-position: 0 ${(Math.max(1, 22 - (scanlineCfg?.params.scanlineDensity ?? 10))) * 2}px; }
@@ -94,22 +99,21 @@ function ScanlineOverlay({ density, speed, color }: { density: number; speed: nu
   )
 }
 
-function getLayerKind(effect: EffectType): 'glow' | 'deco' | 'text' {
-  if (['neon', 'glowpulse', 'fire', 'ice'].includes(effect)) return 'glow'
-  if (['sparkle', 'noise', 'particles', 'matrixrain', 'confetti', 'gradientorb', 'spiralgalaxy', 'caustics'].includes(effect)) return 'deco'
-  return 'text'
+/** 判断是否为纯装饰效果（不需要文字） */
+function isDecoEffect(effect: EffectType): boolean {
+  return ['noise', 'particles', 'matrixrain', 'confetti', 'gradientorb', 'spiralgalaxy', 'caustics'].includes(effect)
 }
 
 function EffectWrap({ effect, text, params }: { effect: EffectType; text: string; params: EffectParams }) {
   switch (effect) {
-    case 'glitch': return <Glitch text={text} intensity={params.glitchIntensity ?? 5} speed={params.glitchSpeed ?? 2} />
+    case 'glitch': return <Glitch text={text} intensity={params.glitchIntensity ?? 5} speed={params.glitchSpeed ?? 2} color1={params.glitchColor1} color2={params.glitchColor2} />
     case 'neon': return <Neon text={text} color={params.neonColor ?? '#ff00ff'} glow={params.neonGlow ?? 10} flicker={params.neonFlicker ?? true} />
     case 'glowpulse': return <GlowPulse text={text} size={params.glowpulseSize ?? 40} speed={params.glowpulseSpeed ?? 2} color={params.glowpulseColor ?? '#ff88cc'} />
     case 'fire': return <Fire text={text} intensity={params.fireIntensity ?? 5} speed={params.fireSpeed ?? 2} />
     case 'ice': return <Ice text={text} sparkle={params.iceSparkle ?? 5} color={params.iceColor ?? '#88ccff'} speed={params.iceSpeed ?? 2} />
     case 'sparkle': return <Sparkle text={text} count={params.sparkleCount ?? 15} speed={params.sparkleSpeed ?? 2} />
-    case 'liquid': return <Liquid text={text} intensity={params.liquidIntensity ?? 10} speed={params.liquidSpeed ?? 3} scale={params.liquidScale ?? 150} />
-    case 'phosphor': return <Phosphor text={text} trail={params.phosphorTrail ?? 5} speed={params.phosphorSpeed ?? 2} />
+    case 'liquid': return <Liquid text={text} intensity={params.liquidIntensity ?? 10} speed={params.liquidSpeed ?? 3} scale={params.liquidScale ?? 150} color={params.liquidColor} />
+    case 'phosphor': return <Phosphor text={text} trail={params.phosphorTrail ?? 5} speed={params.phosphorSpeed ?? 2} color={params.phosphorColor} />
     case 'shake': return <Shake text={text} intensity={params.shakeIntensity ?? 5} speed={params.shakeSpeed ?? 5} />
     default: return <></>
   }

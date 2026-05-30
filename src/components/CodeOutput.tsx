@@ -46,8 +46,9 @@ export default function CodeOutput({ code }: Props) {
         </button>
       </div>
       {/* 代码展示区 */}
-      <pre className="bg-[#0d0d1a] border border-[#2a2a4a] rounded-lg p-4 overflow-x-auto
+      <pre className="bg-[#0d0d1a] border border-[#2a2a4a] rounded-lg p-4
                       text-sm text-[#aab] font-mono leading-relaxed max-h-64 overflow-y-auto
+                      whitespace-pre-wrap break-all
                       selection:bg-[#f0c060]/30">
         <code>{code || '/* 请先选择一种动效 */'}</code>
       </pre>

@@ -38,7 +38,7 @@ export type EffectType =
 /** 动效参数 */
 export interface EffectParams {
   // ===== 文字动效 =====
-  glitchIntensity?: number; glitchSpeed?: number
+  glitchIntensity?: number; glitchSpeed?: number; glitchColor1?: string; glitchColor2?: string
   waveAmplitude?: number; waveFrequency?: number; waveSpeed?: number
   neonColor?: string; neonGlow?: number; neonFlicker?: boolean
   typeSpeed?: number; cursorStyle?: 'block' | 'line'
@@ -48,7 +48,7 @@ export interface EffectParams {
   flickerIntensity?: number; flickerColor?: string
   staggerDelay?: number; staggerDistance?: number; staggerDirection?: 'left' | 'right' | 'top' | 'bottom'
   flipAngle?: number; flipSpeed?: number; flipAxis?: 'X' | 'Y'
-  liquidIntensity?: number; liquidSpeed?: number; liquidScale?: number
+  liquidIntensity?: number; liquidSpeed?: number; liquidScale?: number; liquidColor?: string
   hologramColor?: string; hologramAngle?: number; hologramDistance?: number
   chromaticOffset?: number; chromaticAngle?: number
   cubeSize?: number; cubeSpeed?: number; cubePerspective?: number
@@ -64,7 +64,7 @@ export interface EffectParams {
   rollDistance?: number; rollSpeed?: number; rollDirection?: 'left' | 'right'
   blastDistance?: number; blastSpeed?: number
   raveSpeed?: number; raveColor1?: string; raveColor2?: string
-  phosphorTrail?: number; phosphorSpeed?: number
+  phosphorTrail?: number; phosphorSpeed?: number; phosphorColor?: string
   prismIntensity?: number; prismAngle?: number
   auroraSpeed?: number; auroraWidth?: number
   warpIntensity?: number; warpRadius?: number
