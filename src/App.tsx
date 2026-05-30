@@ -5,7 +5,10 @@ import EffectSelector from './components/EffectSelector'
 import ParamPanel from './components/ParamPanel'
 import Preview from './components/Preview'
 import CodeOutput from './components/CodeOutput'
-// 十种动效组件
+import PresetSelector from './components/PresetSelector'
+import ComboRenderer from './components/ComboRenderer'
+import type { Preset } from './data/presets'
+// 动效组件
 import Glitch from './effects/Glitch'
 import Wave from './effects/Wave'
 import Neon from './effects/Neon'
@@ -84,16 +87,26 @@ export default function App() {
   const [text, setText] = useState('Hello World')
   const [effect, setEffect] = useState<EffectType>('glitch')
   const [params, setParams] = useState<EffectParams>(defaultParams('glitch'))
+  // 组合模式：存储当前应用的预设对象
+  const [combo, setCombo] = useState<Preset | null>(null)
 
-  /** 切换动效时同步重置默认参数 */
+  /** 切换动效时退出组合模式 */
   function handleEffectChange(next: EffectType) {
+    setCombo(null)
     setEffect(next)
     setParams(defaultParams(next))
   }
 
-  /** 参数变更 — 浅合并到当前 params */
   function handleParamChange(key: string, value: number | string | boolean) {
     setParams((prev) => ({ ...prev, [key]: value }))
+  }
+
+  /** 一键应用预设：全部效果共享同一段 text，ComboRenderer 负责分层渲染 */
+  function handlePresetApply(preset: Preset) {
+    setCombo(preset)
+    setText(preset.text)
+    setEffect(preset.combo[0]?.effect ?? 'glitch')
+    setParams(preset.combo[0]?.params ?? {})
   }
 
   const code = useMemo(
@@ -122,13 +135,20 @@ export default function App() {
 
       {/* 主内容区 */}
       <main className="max-w-5xl mx-auto px-6 py-6 space-y-5">
+        {/* 预设模板 */}
+        <PresetSelector onApply={handlePresetApply} />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <TextInput text={text} onChange={setText} />
           <EffectSelector current={effect} onChange={handleEffectChange} />
         </div>
 
         <Preview>
-          <EffectRenderer effect={effect} text={text} params={params} />
+          {combo ? (
+            <ComboRenderer text={combo.text} combo={combo.combo} bg={combo.bg} />
+          ) : (
+            <EffectRenderer effect={effect} text={text} params={params} />
+          )}
         </Preview>
 
         <ParamPanel effect={effect} params={params} onChange={handleParamChange} />
@@ -137,7 +157,7 @@ export default function App() {
       </main>
 
       <footer className="text-center py-6 text-xs text-[#555577]">
-        儿戏的动画工坊 — React + TypeScript + GSAP | 35 种文字动效，所见即所得
+        儿戏的动画工坊 — React + TypeScript + GSAP | 62 种文字动效，所见即所得
       </footer>
     </div>
   )
