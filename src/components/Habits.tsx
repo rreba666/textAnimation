@@ -1,7 +1,7 @@
 // 习惯打卡卡片 —— 含连续天数统计和月统计图表
 
 import { useState, useMemo } from 'react'
-import { CheckCircle2, Plus, Trash2, Flame, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, Plus, Trash2, Flame, ChevronLeft, ChevronRight, Heart, Star } from 'lucide-react'
 import { format, startOfWeek, addWeeks, subWeeks, isToday, isFuture } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import { useDashboardStore } from '../store/useDashboardStore'
@@ -166,9 +166,9 @@ export default function Habits() {
                           className={`flex items-center justify-center justify-self-center w-7 h-7 rounded-full text-xs font-medium transition-all duration-200 ${
                             futureDay ? 'text-text-light cursor-not-allowed opacity-30' :
                             done ? 'bg-warm-green text-white scale-100 hover:scale-110 active:scale-90' :
-                            'bg-[var(--check-undone)] text-text-light hover:bg-warm-pink/30 hover:text-warm-orange'
+                            'bg-[rgb(var(--check-undone))] text-text-light hover:bg-warm-pink/30 hover:text-warm-orange'
                           }`} title={format(d, 'M月d日')}>
-                          {done ? <CheckCircle2 size={13} /> : format(d, 'd')}
+                          {done ? <Heart size={11} fill="currentColor" /> : <Star size={11} />}
                         </button>
                       )
                     })}
@@ -205,10 +205,10 @@ export default function Habits() {
             <div className="flex-1 min-h-[160px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} ticks={[0, 1]} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border-light)', fontSize: 12 }}
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-light))" />
+                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'rgb(var(--text-secondary))' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: 'rgb(var(--text-secondary))' }} axisLine={false} tickLine={false} ticks={[0, 1]} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgb(var(--border-light))', fontSize: 12 }}
                     formatter={(v: number) => [v ? '已打卡' : '未打卡', '']} labelFormatter={(l: string) => `${chartMonth + 1}月${l}日`} />
                   <Bar dataKey="done" fill="#9CAF88" radius={[4, 4, 0, 0]} maxBarSize={20} />
                 </BarChart>

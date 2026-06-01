@@ -88,7 +88,11 @@ export const useDashboardStore = create<DashboardState>()(
 
       toggleTodo: (id: string) => {
         set((s) => ({
-          todos: s.todos.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+          todos: s.todos.map((t) =>
+            t.id === id
+              ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
+              : t,
+          ),
         }))
       },
 

@@ -25,12 +25,12 @@ export default function ProgressBar() {
         </span>
         <span className="text-xs font-medium text-warm-pink">{percent}%</span>
       </div>
-      <div className="h-1.5 bg-[var(--border-light)] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[rgb(var(--border-light))] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${percent}%`,
-            background: 'linear-gradient(90deg, var(--accent-green), var(--accent-secondary))',
+            background: 'linear-gradient(90deg, rgb(var(--accent-green)), rgb(var(--accent-secondary)))',
           }}
         />
       </div>

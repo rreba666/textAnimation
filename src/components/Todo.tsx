@@ -77,7 +77,7 @@ export default function Todo() {
             <span>已完成 {stats.done}/{stats.total} 项</span>
             <span className="font-medium text-warm-green">{stats.percent}%</span>
           </div>
-          <div className="h-1.5 bg-[var(--check-undone)] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[rgb(var(--check-undone))] rounded-full overflow-hidden">
             <div
               className="h-full bg-warm-green rounded-full transition-all duration-500 ease-out"
               style={{ width: `${stats.percent}%` }}
@@ -105,8 +105,8 @@ export default function Todo() {
         </button>
       </div>
 
-      {/* 列表 */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1">
+      {/* 列表 —— 超过 5 条出现滚动条 */}
+      <div className="max-h-[260px] overflow-y-auto custom-scrollbar -mx-1 px-1">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-text-light">
             <CheckCirclePlaceholder />
@@ -125,10 +125,10 @@ export default function Todo() {
               >
                 <button
                   onClick={() => toggleTodo(todo.id)}
-                  className={`flex items-center justify-center w-5 h-5 rounded-full border-2 shrink-0 transition-all duration-200 ${
+                  className={`flex items-center justify-center w-5 h-5 rounded-md border-2 shrink-0 transition-all duration-200 ${
                     todo.completed
-                      ? 'bg-warm-green border-warm-green'
-                      : 'border-[var(--check-undone)] hover:border-warm-orange'
+                      ? 'bg-warm-orange border-warm-orange'
+                      : 'border-[rgb(var(--check-undone))] hover:border-warm-orange'
                   }`}
                 >
                   {todo.completed && <Check size={12} className="text-white" />}

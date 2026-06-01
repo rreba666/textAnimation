@@ -8,35 +8,35 @@ export default {
   theme: {
     extend: {
       colors: {
-        // 莫兰迪色系 —— 通过 CSS 变量支持亮/暗主题
         notebook: {
-          bg: 'var(--bg-primary)',
-          card: 'var(--bg-card)',
-          dot: 'var(--bg-dot)',
+          bg: 'rgb(var(--bg-primary) / <alpha-value>)',
+          card: 'rgb(var(--bg-card) / <alpha-value>)',
+          dot: 'rgb(var(--bg-dot) / <alpha-value>)',
         },
         warm: {
-          orange: 'var(--accent-primary)',
-          pink: 'var(--accent-secondary)',
-          green: 'var(--accent-green)',
+          orange: 'rgb(var(--accent-primary) / <alpha-value>)',
+          pink: 'rgb(var(--accent-secondary) / <alpha-value>)',
+          green: 'rgb(var(--accent-green) / <alpha-value>)',
         },
         text: {
-          primary: 'var(--text-primary)',
-          secondary: 'var(--text-secondary)',
-          light: 'var(--text-light)',
+          primary: 'rgb(var(--text-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+          light: 'rgb(var(--text-light) / <alpha-value>)',
         },
         border: {
-          light: 'var(--border-light)',
+          light: 'rgb(var(--border-light) / <alpha-value>)',
         },
       },
       borderRadius: {
-        card: '20px',
+        card: '16px',
       },
       boxShadow: {
-        'card': '0 4px 12px rgba(0, 0, 0, 0.04)',
-        'card-hover': '0 8px 28px rgba(0, 0, 0, 0.08)',
+        'card': '0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02)',
+        'card-hover': '0 4px 16px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
       },
       fontFamily: {
-        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        title: ['DingTalk JinBuTi', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
       },
     },
   },

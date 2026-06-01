@@ -5,6 +5,7 @@ export interface Todo {
   id: string
   text: string
   completed: boolean
+  completedAt?: string // 完成时间（ISO），未完成时为 undefined
   createdAt: string // ISO 日期字符串
 }
 

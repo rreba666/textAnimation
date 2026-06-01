@@ -10,6 +10,8 @@ import { zhCN } from 'date-fns/locale'
 import { useDashboardStore } from '../store/useDashboardStore'
 import Greeting from './Greeting'
 import ProgressBar from './ProgressBar'
+import DailyQuote from './DailyQuote'
+import Countdown from './Countdown'
 import type { WeatherData, ForecastDay } from '../types'
 
 // WMO 天气代码 → 描述
@@ -218,11 +220,19 @@ export default function Header() {
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
         </div>
+
+        {/* 每日一言（天气下方） */}
+        <div className="w-full hidden sm:block">
+          <DailyQuote />
+        </div>
       </div>
 
-      {/* 第二行：本月进度条 */}
+      {/* 第二行：本月进度条 + 倒计时 */}
       <div className="px-4 sm:px-6 pb-3">
-        <ProgressBar />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex-1 min-w-[200px]"><ProgressBar /></div>
+          <Countdown />
+        </div>
       </div>
 
       {/* 分隔线 */}
