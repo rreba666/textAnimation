@@ -199,13 +199,13 @@ export default function Header() {
                 className="w-24 px-2 py-1 text-sm border border-border-light rounded-lg outline-none focus:border-warm-orange bg-notebook-card text-text-primary"
                 autoFocus
               />
-              <button onClick={handleCitySubmit} className="p-1 rounded-lg hover:bg-notebook-bg text-warm-orange"><Search size={16} /></button>
-              <button onClick={() => setShowCityInput(false)} className="p-1 rounded-lg hover:bg-notebook-bg text-text-secondary"><X size={16} /></button>
+              <button onClick={handleCitySubmit} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-warm-orange"><Search size={16} /></button>
+              <button onClick={() => setShowCityInput(false)} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary"><X size={16} /></button>
             </div>
           ) : (
             <button
               onClick={() => setShowCityInput(true)}
-              className="flex items-center gap-1 text-xs text-text-secondary hover:text-warm-orange transition-colors px-2 py-1 rounded-lg hover:bg-notebook-bg"
+              className="flex items-center gap-1 text-xs text-text-secondary hover:text-warm-orange transition-colors px-2 py-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8"
             >
               <MapPin size={14} /><span>{weatherData?.city || weatherCity}</span>
             </button>
@@ -214,7 +214,7 @@ export default function Header() {
           {/* 主题切换 */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl hover:bg-notebook-bg transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
             title={theme === 'light' ? '暗色模式' : '亮色模式'}
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}

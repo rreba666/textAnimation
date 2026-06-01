@@ -133,9 +133,9 @@ export default function Habits() {
           ) : (
             <>
               <div className="flex items-center justify-between mb-3">
-                <button onClick={() => setWeekStart((w) => subWeeks(w, 1))} className="p-1 rounded-lg hover:bg-notebook-bg text-text-secondary"><ChevronLeft size={16} /></button>
+                <button onClick={() => setWeekStart((w) => subWeeks(w, 1))} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary"><ChevronLeft size={16} /></button>
                 <span className="text-xs text-text-secondary">{format(weekStart, 'M月d日')} - {format(new Date(weekStart.getTime() + 6 * 86400000), 'M月d日')}</span>
-                <button onClick={() => setWeekStart((w) => addWeeks(w, 1))} className="p-1 rounded-lg hover:bg-notebook-bg text-text-secondary"><ChevronRight size={16} /></button>
+                <button onClick={() => setWeekStart((w) => addWeeks(w, 1))} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary"><ChevronRight size={16} /></button>
               </div>
 
               <div className="grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 mb-2 items-center">
@@ -153,7 +153,7 @@ export default function Habits() {
                 const weekData = getWeekRecords(habit.id, weekStart)
                 const streak = getHabitStreak(habit.id)
                 return (
-                  <div key={habit.id} className="grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 items-center py-1.5 hover:bg-notebook-bg/50 rounded-xl transition-colors group">
+                  <div key={habit.id} className="grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 items-center py-1.5 hover:bg-notebook-bg/50 dark:hover:bg-white/5 rounded-xl transition-colors group">
                     <div className="w-20 pr-1 flex items-center gap-1.5">
                       {streak > 0 && <Flame size={11} className="text-warm-orange shrink-0" />}
                       <span className="text-xs font-medium text-text-primary truncate">{habit.name}</span>
@@ -189,9 +189,9 @@ export default function Habits() {
       {viewMode === 'month' && (
         <div className="flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-2">
-            <button onClick={() => { if (chartMonth === 0) { setChartMonth(11); setChartYear((y) => y - 1) } else setChartMonth((m) => m - 1) }} className="p-1 rounded-lg hover:bg-notebook-bg text-text-secondary"><ChevronLeft size={16} /></button>
+            <button onClick={() => { if (chartMonth === 0) { setChartMonth(11); setChartYear((y) => y - 1) } else setChartMonth((m) => m - 1) }} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary"><ChevronLeft size={16} /></button>
             <span className="text-sm font-medium text-text-primary">{chartYear}年{chartMonth + 1}月</span>
-            <button onClick={() => { if (chartMonth === 11) { setChartMonth(0); setChartYear((y) => y + 1) } else setChartMonth((m) => m + 1) }} className="p-1 rounded-lg hover:bg-notebook-bg text-text-secondary"><ChevronRight size={16} /></button>
+            <button onClick={() => { if (chartMonth === 11) { setChartMonth(0); setChartYear((y) => y + 1) } else setChartMonth((m) => m + 1) }} className="p-1 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary"><ChevronRight size={16} /></button>
           </div>
 
           <div className="flex flex-wrap gap-1.5 mb-3">

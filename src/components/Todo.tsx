@@ -119,7 +119,7 @@ export default function Todo() {
             {filtered.map((todo) => (
               <li
                 key={todo.id}
-                className={`group flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-notebook-bg/60 transition-colors ${
+                className={`group flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-notebook-bg/60 dark:hover:bg-white/5 transition-colors ${
                   todo.completed ? 'opacity-60' : ''
                 }`}
               >
@@ -143,8 +143,8 @@ export default function Todo() {
                       className="flex-1 px-2 py-0.5 text-sm border border-warm-orange rounded-lg outline-none bg-white text-text-primary"
                       autoFocus
                     />
-                    <button onClick={() => { editTodo(todo.id, editingText); setEditingId(null) }} className="p-1 text-warm-green hover:bg-green-50 rounded"><Check size={14} /></button>
-                    <button onClick={() => setEditingId(null)} className="p-1 text-text-light hover:bg-red-50 rounded"><X size={14} /></button>
+                    <button onClick={() => { editTodo(todo.id, editingText); setEditingId(null) }} className="p-1 text-warm-green hover:bg-green-50 dark:hover:bg-green-900/20 rounded"><Check size={14} /></button>
+                    <button onClick={() => setEditingId(null)} className="p-1 text-text-light hover:bg-red-50 dark:hover:bg-red-900/20 rounded"><X size={14} /></button>
                   </div>
                 ) : (
                   <span
@@ -159,7 +159,7 @@ export default function Todo() {
                 {editingId !== todo.id && (
                   <button
                     onClick={() => deleteTodo(todo.id)}
-                    className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                    className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
                   >
                     <Trash2 size={14} />
                   </button>

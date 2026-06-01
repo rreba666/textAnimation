@@ -38,7 +38,7 @@ export default function DailyQuote() {
         <span className="truncate italic">「{quote.hitokoto}」—— {quote.from}</span>
       ) : null}
       <button onClick={fetchQuote} disabled={loading}
-        className={`p-0.5 rounded-md hover:bg-notebook-bg transition-colors shrink-0 ${loading ? 'opacity-30 cursor-not-allowed' : 'text-text-light hover:text-warm-orange'}`}
+        className={`p-0.5 rounded-md hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors shrink-0 ${loading ? 'opacity-30 cursor-not-allowed' : 'text-text-light hover:text-warm-orange'}`}
         title="换一句"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} /></button>
     </div>
   )

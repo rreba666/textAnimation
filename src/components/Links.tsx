@@ -69,7 +69,7 @@ export default function Links() {
 
               return (
                 <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
-                  className="group flex items-center gap-3 p-3 rounded-2xl bg-notebook-bg/50 hover:bg-notebook-bg hover:shadow-sm transition-all duration-200 hover:-translate-y-0.5 relative"
+                  className="group flex items-center gap-3 p-3 rounded-2xl bg-notebook-bg/50 hover:bg-notebook-bg dark:hover:bg-white/8 hover:shadow-sm transition-all duration-200 hover:-translate-y-0.5 relative"
                   title={`${link.name}\n${domain}`}>
                   <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center bg-notebook-card overflow-hidden">
                     {showFallback ? <Globe size={18} className="text-text-light" /> :
@@ -80,7 +80,7 @@ export default function Links() {
                     <div className="text-xs text-text-light mt-0.5 truncate">{domain}</div>
                   </div>
                   <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteLink(link.id) }}
-                    className="absolute top-1.5 right-1.5 p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all">
+                    className="absolute top-1.5 right-1.5 p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all">
                     <Trash2 size={13} />
                   </button>
                 </a>

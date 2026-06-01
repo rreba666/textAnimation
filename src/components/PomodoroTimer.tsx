@@ -46,7 +46,7 @@ export default function PomodoroTimer() {
       </div>
       <div className="flex items-center justify-center gap-3 mb-4">
         <button onClick={() => setRunning(!running)} disabled={done} className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-medium text-sm transition-all bg-warm-orange text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">{running ? <Pause size={16} /> : <Play size={16} />}{running ? '暂停' : '开始'}</button>
-        <button onClick={() => { clear(); setRunning(false); setDone(false); setTimeLeft(preset * 60) }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-text-primary hover:bg-notebook-bg transition-colors"><RotateCcw size={15} />重置</button>
+        <button onClick={() => { clear(); setRunning(false); setDone(false); setTimeLeft(preset * 60) }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-text-secondary hover:text-text-primary hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors"><RotateCcw size={15} />重置</button>
       </div>
       <div className="flex items-center justify-center gap-2">
         {PRESETS.map(p => (

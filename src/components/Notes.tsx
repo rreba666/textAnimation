@@ -68,7 +68,7 @@ export default function Notes() {
             notes.map((note) => (
               <button key={note.id} onClick={() => selectNote(note.id)}
                 className={`text-left p-2.5 rounded-xl transition-all duration-200 ${
-                  selectedNoteId === note.id ? 'bg-warm-orange/10 border border-warm-orange/20' : 'hover:bg-notebook-bg border border-transparent'
+                  selectedNoteId === note.id ? 'bg-warm-orange/10 border border-warm-orange/20' : 'hover:bg-notebook-bg dark:hover:bg-white/8 border border-transparent'
                 }`}>
                 <div className="text-xs font-medium text-text-primary truncate">{note.title || '无标题'}</div>
                 <div className="flex items-center gap-1 mt-1 text-xs text-text-light">
