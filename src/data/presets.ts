@@ -33,11 +33,11 @@ export const PRESETS: Preset[] = [
   },
   {
     id: 'magical-girl',
-    name: '魔法少女',
+    name: '魔法梦幻',
     description: '粉色光晕脉冲 + 星光 + 粉紫冰晶',
-    tags: ['可爱', '梦幻', '少女'],
+    tags: ['可爱', '梦幻', '梦幻'],
     color: '#ff88cc',
-    text: '魔法少女',
+    text: '魔法梦幻',
     combo: [
       { effect: 'glowpulse', params: { glowpulseSize: 35, glowpulseSpeed: 1.5, glowpulseColor: '#ff88cc' } },
       { effect: 'sparkle', params: { sparkleCount: 24, sparkleSpeed: 2 } },
