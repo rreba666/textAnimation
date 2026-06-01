@@ -1,0 +1,152 @@
+/* TailwindCSS 指令 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== 亮色主题（莫兰迪色系） ===== */
+:root,
+[data-theme='light'] {
+  --bg-primary: #F5F0E8;
+  --bg-card: #FFFFFF;
+  --bg-dot: #E0DBD0;
+  --bg-code: #F0EBE3;
+  --text-primary: #4A4A4A;
+  --text-secondary: #9B9B9B;
+  --text-light: #BFBBB2;
+  --accent-primary: #D4A5A5;
+  --accent-secondary: #C4A484;
+  --accent-green: #9CAF88;
+  --border-light: #E8E4D9;
+  --scrollbar-thumb: #D9D4C8;
+  --scrollbar-thumb-hover: #C4BDB0;
+  --code-color: #C08080;
+  --blockquote-bg: rgba(212, 165, 165, 0.08);
+  --check-undone: #D9D4C8;
+}
+
+/* ===== 暗色主题 ===== */
+[data-theme='dark'] {
+  --bg-primary: #1E1E2E;
+  --bg-card: #2A2A3D;
+  --bg-dot: #353550;
+  --bg-code: #2E2E42;
+  --text-primary: #E0D8D0;
+  --text-secondary: #A09890;
+  --text-light: #706A65;
+  --accent-primary: #C89090;
+  --accent-secondary: #B89878;
+  --accent-green: #8FAF80;
+  --border-light: #3A3A50;
+  --scrollbar-thumb: #3A3A50;
+  --scrollbar-thumb-hover: #4A4A60;
+  --code-color: #D4A0A0;
+  --blockquote-bg: rgba(200, 144, 144, 0.1);
+  --check-undone: #4A4A5D;
+}
+
+/* ===== 全局 ===== */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    'Hiragino Sans GB', 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 点阵纹理 */
+.dot-pattern {
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle, var(--bg-dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* 卡片 */
+@layer components {
+  .card {
+    @apply rounded-card shadow-card;
+    background-color: var(--bg-card);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+  }
+}
+
+/* 滚动条 */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+
+/* 动画 */
+@keyframes scale-in {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(0.95); }
+  75% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes progress-in {
+  from { width: 0%; }
+}
+
+/* Markdown 渲染 */
+.markdown-body {
+  color: var(--text-primary);
+  line-height: 1.75;
+  word-wrap: break-word;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  margin-top: 1.2em; margin-bottom: 0.6em; font-weight: 600;
+}
+.markdown-body h1 { font-size: 1.4em; border-bottom: 2px solid var(--border-light); padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.2em; }
+.markdown-body h3 { font-size: 1.05em; }
+.markdown-body p { margin-bottom: 0.8em; }
+.markdown-body ul, .markdown-body ol { padding-left: 1.5em; margin-bottom: 0.8em; }
+.markdown-body li { margin-bottom: 0.3em; }
+.markdown-body code {
+  background: var(--bg-code); padding: 0.15em 0.4em; border-radius: 4px;
+  font-size: 0.9em; font-family: 'SF Mono', 'Consolas', monospace; color: var(--code-color);
+}
+.markdown-body pre { background: var(--bg-code); padding: 1em; border-radius: 12px; overflow-x: auto; margin-bottom: 1em; }
+.markdown-body pre code { background: none; padding: 0; color: var(--text-primary); }
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent-primary); margin: 0.8em 0; padding: 0.3em 1em;
+  color: var(--text-secondary); background: var(--blockquote-bg); border-radius: 0 8px 8px 0;
+}
+.markdown-body a { color: var(--accent-primary); text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
+.markdown-body strong { font-weight: 600; }
+.markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 0.8em; font-size: 0.9em; }
+.markdown-body th, .markdown-body td { border: 1px solid var(--border-light); padding: 0.4em 0.8em; text-align: left; }
+.markdown-body th { background: var(--bg-code); font-weight: 600; }
+.markdown-body hr { border: none; border-top: 1px solid var(--border-light); margin: 1.2em 0; }
+.markdown-body img { max-width: 100%; border-radius: 8px; }
+
+.prose { max-width: none; }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .dot-pattern { background-size: 14px 14px; }
+}
