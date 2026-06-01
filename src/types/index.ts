@@ -130,3 +130,12 @@ export interface EffectMeta {
 export interface ParamSlider {
   key: string; label: string; min: number; max: number; step: number; unit?: string
 }
+
+/** 文字样式 */
+export interface TextStyle {
+  fontFamily: string
+  fontSize: number
+  fontWeight: number
+  color: string
+  letterSpacing: number
+}

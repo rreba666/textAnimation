@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { EffectType, EffectMeta, EffectCategory } from '../types'
+import { canSelectEffect } from '../data/conflicts'
 
 interface Props {
-  current: EffectType
-  onChange: (effect: EffectType) => void
+  selected: EffectType[]
+  onToggle: (effect: EffectType) => void
 }
 
 const ALL: EffectMeta[] = [
@@ -97,11 +98,16 @@ const CATEGORIES: { key: EffectCategory; label: string; count: number; color: st
   { key: 'decor', label: '背景/装饰', count: 2, color: '#ffe66d' },
 ]
 
-export default function EffectSelector({ current, onChange }: Props) {
-  // 根据当前选中的效果自动定位所属分类
-  const currentMeta = ALL.find((e) => e.key === current)
+export default function EffectSelector({ selected, onToggle }: Props) {
+  // 根据最后一个选中效果自动定位分类
+  const currentMeta = ALL.find((e) => e.key === selected[selected.length - 1])
   const defaultCat = currentMeta?.category ?? 'text'
   const [activeCat, setActiveCat] = useState<EffectCategory>(defaultCat)
+
+  // 选中效果变化时，自动切换到新效果的分类
+  useEffect(() => {
+    if (currentMeta) setActiveCat(currentMeta.category)
+  }, [selected]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const items = ALL.filter((e) => e.category === activeCat)
 
@@ -136,17 +142,21 @@ export default function EffectSelector({ current, onChange }: Props) {
       {/* 效果列表 — 仅显示当前分类 */}
       <div className="flex flex-wrap gap-1 min-h-[32px]">
         {items.map((eff) => {
-          const isActive = current === eff.key
+          const isActive = selected.includes(eff.key)
+          const canSelect = canSelectEffect(eff.key, selected)
           return (
             <button
               key={eff.key}
-              onClick={() => onChange(eff.key)}
-              title={eff.description}
+              onClick={() => canSelect && onToggle(eff.key)}
+              disabled={!canSelect}
+              title={canSelect ? eff.description : `${eff.description}（冲突：同组已选中其他效果）`}
               className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[11px] font-medium
                 transition-all duration-150 leading-tight
                 ${isActive
                   ? 'bg-[#b8a0d4] text-white shadow-md shadow-[#b8a0d4]/30 scale-105'
-                  : 'bg-[#1a1a2e] text-[#777] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#bbb]'
+                  : !canSelect
+                    ? 'bg-[#1a1a2e] text-[#444] border border-[#2a2a4a] opacity-40 cursor-not-allowed'
+                    : 'bg-[#1a1a2e] text-[#777] border border-[#2a2a4a] hover:border-[#b8a0d4] hover:text-[#bbb]'
                 }`}
             >
               <EffIcon type={eff.key} />
