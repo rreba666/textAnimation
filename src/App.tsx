@@ -1,8 +1,27 @@
-// 根组件：骨架屏加载 → 内容淡入 → 卡片网格（支持显隐/排序/拖拽）
+// 根组件：骨架屏加载 → 内容淡入 → 卡片网格（dnd-kit 拖拽排序）
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import gsap from 'gsap'
-import { format, startOfWeek, endOfWeek, isWithinInterval, subDays } from 'date-fns'
+import { format, subDays } from 'date-fns'
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  useSortable,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useDashboardStore } from './store/useDashboardStore'
 import { useTodoReminder } from './hooks/useTodoReminder'
 import { useHabitReminder } from './hooks/useHabitReminder'
@@ -20,7 +39,7 @@ import EasterEgg from './components/EasterEgg'
 import ToastContainer from './components/Toast'
 import DataTipModal from './components/DataTipModal'
 
-// 卡片注册表：id → 组件 + 尺寸
+// 卡片注册表
 const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: string }> = {
   todo:       { Comp: Todo,          className: 'min-h-[380px]' },
   habits:     { Comp: Habits,        className: 'min-h-[380px]' },
@@ -29,6 +48,46 @@ const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: stri
   weekstats:  { Comp: WeekStats,     className: '' },
   calendar:   { Comp: Calendar,      className: '' },
   notes:      { Comp: Notes,         className: 'md:col-span-2 lg:col-span-3 min-h-[420px]' },
+}
+
+// ---- 可排序卡片包装器 ----
+function SortableCard({ id, children, className }: { id: string; children: React.ReactNode; className: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.35 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      data-card-id={id}
+      className={`relative group/card ${className}`}
+    >
+      {/* 拖拽手柄：顶部居中 pill，hover 显示 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-1/2 -translate-x-1/2 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+      >
+        <div
+          className="h-1.5 w-10 rounded-full"
+          style={{ background: 'rgb(var(--border-light))' }}
+        />
+      </div>
+
+      {/* 卡片菜单 */}
+      <div className="absolute top-3 right-3 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
+        <CardMenu cardId={id} />
+      </div>
+
+      {children}
+    </div>
+  )
 }
 
 export default function App() {
@@ -41,26 +100,71 @@ export default function App() {
   const [phase, setPhase] = useState<'skeleton' | 'content'>('skeleton')
   const skeletonRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-
-  // 卡片拖拽排序状态
-  const [cardDragId, setCardDragId] = useState<string | null>(null)
-  const [cardDragOverId, setCardDragOverId] = useState<string | null>(null)
   const [showAutoTip, setShowAutoTip] = useState(false)
 
-  // 可见且按序排列的卡片列表
+  // dnd-kit 拖拽状态
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  // 可见卡片列表
   const visibleCards = useMemo(
     () => cardOrder.filter((id) => CARD_REGISTRY[id] && !hiddenCards.includes(id)),
     [cardOrder, hiddenCards],
   )
+
+  // dnd-kit 传感器：8px 移动阈值区分点击与拖拽，支持键盘
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  // 拖拽开始：DragOverlay 入场弹性动画
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveId(e.active.id as string)
+    requestAnimationFrame(() => {
+      if (overlayRef.current) {
+        gsap.fromTo(overlayRef.current,
+          { scale: 0.9, opacity: 0.6 },
+          { scale: 1.03, opacity: 0.9, duration: 0.2, ease: 'back.out(2)' }
+        )
+      }
+    })
+  }
+
+  // 拖拽结束：更新顺序 + GSAP 弹性回弹动画
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    const draggedId = active.id as string
+    setActiveId(null)
+
+    if (!over || active.id === over.id) return
+
+    const oldIdx = cardOrder.indexOf(draggedId)
+    const newIdx = cardOrder.indexOf(over.id as string)
+    if (oldIdx === -1 || newIdx === -1) return
+
+    setCardOrder(arrayMove(cardOrder, oldIdx, newIdx))
+
+    // 等待 dnd-kit transition 完成后再播 GSAP 回弹
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-card-id="${draggedId}"]`) as HTMLElement
+        if (!el) return
+        gsap.fromTo(el,
+          { scale: 1.04, boxShadow: '0 12px 40px rgba(0,0,0,0.10)' },
+          { scale: 1, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', duration: 0.35, ease: 'elastic.out(1, 0.3)' }
+        )
+      })
+    })
+  }
 
   // ---- 主题同步 ----
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  // ---- 动态背景（仅非默认预设时覆盖 dot-pattern，纸纹跟随 CSS 变量） ----
+  // ---- 动态背景 ----
   const bgStyle = useMemo(() => {
-    // 默认纸纹：不设内联样式，让 dot-pattern 的 CSS 变量随主题自动变色
     if (!background || background.type === 'paper') return undefined
     return { background: bgPresets[background.type] || bgPresets.paper }
   }, [background])
@@ -95,119 +199,46 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // ---- 通知权限请求（延迟 2 秒） ----
+  // ---- 通知权限请求 ----
   useEffect(() => {
     if (!('Notification' in window)) return
     if (Notification.permission !== 'default') return
-    const timer = setTimeout(() => {
-      Notification.requestPermission()
-    }, 2000)
+    const timer = setTimeout(() => { Notification.requestPermission() }, 2000)
     return () => clearTimeout(timer)
   }, [])
 
-  // ---- 每日首次打开：弹出昨日总结 ----
+  // ---- 每日总结 ----
   useEffect(() => {
     const KEY = 'daily_summary_last_date'
     const today = format(new Date(), 'yyyy-MM-dd')
-    const lastDate = localStorage.getItem(KEY)
-    if (lastDate === today) return
-
-    // 标记今天已展示
+    if (localStorage.getItem(KEY) === today) return
     localStorage.setItem(KEY, today)
-
-    // 延迟等页面加载完成后弹出
     const timer = setTimeout(() => {
       if (!('Notification' in window) || Notification.permission !== 'granted') return
-
       const store = useDashboardStore.getState()
       const yesterday = subDays(new Date(), 1)
-
-      // 昨日完成待办
-      const doneTodos = store.todos.filter(
-        (t) => t.completed && t.completedAt && format(new Date(t.completedAt), 'yyyy-MM-dd') === format(yesterday, 'yyyy-MM-dd'),
-      ).length
-
-      // 昨日打卡次数
-      const dateStr = format(yesterday, 'yyyy-MM-dd')
-      const checkins = (store.habitRecords[dateStr] || []).length
-
-      // 当前连续天数
-      const streak = store.habits.length > 0
-        ? Math.max(...store.habits.map((h) => store.getHabitStreak(h.id)))
-        : 0
-
-      const body = `完成待办：${doneTodos} 项\n打卡次数：${checkins} 次\n连续打卡：${streak} 天`
-      new Notification('昨日总结', { body })
+      const doneTodos = store.todos.filter((t) => t.completed && t.completedAt && format(new Date(t.completedAt), 'yyyy-MM-dd') === format(yesterday, 'yyyy-MM-dd')).length
+      const checkins = (store.habitRecords[format(yesterday, 'yyyy-MM-dd')] || []).length
+      const streak = store.habits.length > 0 ? Math.max(...store.habits.map((h) => store.getHabitStreak(h.id))) : 0
+      new Notification('昨日总结', { body: `完成待办：${doneTodos} 项\n打卡次数：${checkins} 次\n连续打卡：${streak} 天` })
     }, 3000)
-
     return () => clearTimeout(timer)
   }, [])
 
-  // ---- 首次访问：自动弹出数据安全提示 ----
+  // ---- 首次访问数据提示 ----
   useEffect(() => {
     const KEY = 'hasSeenDataTip'
     if (localStorage.getItem(KEY)) return
-    const timer = setTimeout(() => {
-      setShowAutoTip(true)
-      localStorage.setItem(KEY, '1')
-    }, 1500)
+    const timer = setTimeout(() => { setShowAutoTip(true); localStorage.setItem(KEY, '1') }, 1500)
     return () => clearTimeout(timer)
   }, [])
 
-  // ---- 后台提醒 hooks ----
+  // ---- 后台提醒 ----
   useTodoReminder()
   useHabitReminder()
 
-  // ---- 卡片拖拽排序（增强视觉反馈） ----
-  const handleCardDragStart = (e: React.DragEvent, id: string) => {
-    setCardDragId(id)
-    e.dataTransfer.effectAllowed = 'move'
-    // 拖拽中：提亮阴影 + 抬高层级
-    const el = e.currentTarget as HTMLElement
-    el.style.zIndex = '100'
-    el.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)'
-    el.style.transition = 'box-shadow 0.15s ease-out'
-  }
-
-  const handleCardDragOver = (e: React.DragEvent, id: string) => {
-    e.preventDefault()
-    if (id !== cardDragId) setCardDragOverId(id)
-  }
-
-  const handleCardDragLeave = () => setCardDragOverId(null)
-
-  const handleCardDrop = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault()
-    if (cardDragId && cardDragId !== targetId) {
-      const ids = visibleCards.filter((id) => !hiddenCards.includes(id))
-      const fromIdx = ids.indexOf(cardDragId)
-      const toIdx = ids.indexOf(targetId)
-      if (fromIdx !== -1 && toIdx !== -1) {
-        const newOrder = [...cardOrder]
-        const globalFrom = newOrder.indexOf(cardDragId)
-        const globalTo = newOrder.indexOf(targetId)
-        newOrder.splice(globalFrom, 1)
-        newOrder.splice(globalTo, 0, cardDragId)
-        setCardOrder(newOrder)
-      }
-    }
-    setCardDragId(null)
-    setCardDragOverId(null)
-  }
-
-  // 拖拽结束：清理样式 + GSAP 弹性回弹
-  const handleCardDragEnd = (e: React.DragEvent) => {
-    const el = e.currentTarget as HTMLElement
-    el.style.zIndex = ''
-    el.style.boxShadow = ''
-    // GSAP 弹性落位
-    gsap.fromTo(el,
-      { scale: 1.03 },
-      { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }
-    )
-    setCardDragId(null)
-    setCardDragOverId(null)
-  }
+  // 当前被拖拽的卡片组件（用于 DragOverlay）
+  const activeCard = activeId ? CARD_REGISTRY[activeId] : null
 
   return (
     <div id="app-root" className="min-h-screen">
@@ -221,38 +252,43 @@ export default function App() {
             <Header />
 
             <main className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-24">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
-                {visibleCards.map((id) => {
-                  const card = CARD_REGISTRY[id]
-                  if (!card) return null
-                  const { Comp, className } = card
-                  return (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={visibleCards} strategy={rectSortingStrategy}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
+                    {visibleCards.map((id) => {
+                      const card = CARD_REGISTRY[id]
+                      if (!card) return null
+                      return (
+                        <SortableCard key={id} id={id} className={card.className}>
+                          <card.Comp />
+                        </SortableCard>
+                      )
+                    })}
+                  </div>
+                </SortableContext>
+
+                {/* 拖拽浮层：被拖拽卡片的半透明副本 */}
+                <DragOverlay dropAnimation={null}>
+                  {activeCard ? (
                     <div
-                      key={id}
-                      draggable
-                      onDragStart={(e) => handleCardDragStart(e, id)}
-                      onDragOver={(e) => handleCardDragOver(e, id)}
-                      onDragLeave={handleCardDragLeave}
-                      onDrop={(e) => handleCardDrop(e, id)}
-                      onDragEnd={handleCardDragEnd}
-                      className={`relative group/card cursor-grab active:cursor-grabbing transition-all duration-200 ${
-                        cardDragId === id ? 'opacity-60' : ''
-                      } ${
-                        cardDragOverId === id
-                          ? 'rounded-2xl border-2 border-dashed'
-                          : ''
-                      } ${className}`}
-                      style={cardDragOverId === id ? { borderColor: 'rgb(var(--accent-primary))', background: 'rgb(var(--accent-primary) / 0.06)' } : undefined}
+                      ref={overlayRef}
+                      className={`${activeCard.className} opacity-90`}
+                      style={{
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 20px rgba(0,0,0,0.1)',
+                        borderRadius: 18,
+                        transform: 'scale(1.03) rotate(1deg)',
+                      }}
                     >
-                      {/* 卡片菜单（hover 时显示） */}
-                      <div className="absolute top-3 right-3 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                        <CardMenu cardId={id} />
-                      </div>
-                      <Comp />
+                      <activeCard.Comp />
                     </div>
-                  )
-                })}
-              </div>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
             </main>
 
             <EasterEgg />
@@ -265,7 +301,6 @@ export default function App() {
   )
 }
 
-/** 背景预设 CSS 映射 */
 const bgPresets: Record<string, string> = {
   paper:  '#F8F5EF',
   pink:   'linear-gradient(135deg, #FDE8E8, #F5F0E8)',

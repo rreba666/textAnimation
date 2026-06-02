@@ -64,14 +64,14 @@
 | Markdown | react-markdown 10 + remark-gfm 4 |
 | 图标 | lucide-react 0.460 |
 | 字体 | 钉钉进步体（标题）+ JetBrains Mono（代码/数字）+ 系统默认（正文） |
-| 动画 | GSAP 3.15（弹性缩放 + 滑入淡入 + 脉冲反馈） |
+| 拖拽 | @dnd-kit/core + @dnd-kit/sortable（排序动画 + DragOverlay 浮层） |
 | 包管理 | pnpm |
 
 # 四、项目结构
 
 ```
 src/
-├── App.tsx                     # 根组件：CSS Grid 3 列卡片 + 全局键盘快捷键分发
+├── App.tsx                     # 根组件：dnd-kit 拖拽排序 + CSS Grid 3 列 + 全局键盘快捷键
 ├── main.tsx                    # 入口（无 StrictMode）
 ├── index.css                   # @font-face + 双主题变量(RGB) + 手帐卡片 + 覆盖规则 + 动画
 ├── vite-env.d.ts
