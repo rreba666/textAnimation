@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
+  LayoutGrid, Palette,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -12,6 +13,8 @@ import Greeting from './Greeting'
 import ProgressBar from './ProgressBar'
 import DailyQuote from './DailyQuote'
 import Countdown from './Countdown'
+import ManageCardsModal from './ManageCardsModal'
+import BackgroundPicker from './BackgroundPicker'
 import type { WeatherData, ForecastDay } from '../types'
 
 // WMO 天气代码 → 描述
@@ -51,6 +54,8 @@ export default function Header() {
   const setWeatherData = useDashboardStore((s) => s.setWeatherData)
   const theme = useDashboardStore((s) => s.theme)
   const toggleTheme = useDashboardStore((s) => s.toggleTheme)
+  const [showCardManager, setShowCardManager] = useState(false)
+  const [showBgPicker, setShowBgPicker] = useState(false)
 
   // 时钟
   useEffect(() => {
@@ -211,6 +216,24 @@ export default function Header() {
             </button>
           )}
 
+          {/* 管理卡片 */}
+          <button
+            onClick={() => setShowCardManager(true)}
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            title="管理卡片"
+          >
+            <LayoutGrid size={18} />
+          </button>
+
+          {/* 背景切换 */}
+          <button
+            onClick={() => setShowBgPicker(true)}
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            title="切换背景"
+          >
+            <Palette size={18} />
+          </button>
+
           {/* 主题切换 */}
           <button
             onClick={toggleTheme}
@@ -219,6 +242,10 @@ export default function Header() {
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
+
+          {/* 弹窗 */}
+          <ManageCardsModal open={showCardManager} onClose={() => setShowCardManager(false)} />
+          <BackgroundPicker open={showBgPicker} onClose={() => setShowBgPicker(false)} />
         </div>
 
         {/* 每日一言（天气下方） */}

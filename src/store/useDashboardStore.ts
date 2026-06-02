@@ -48,6 +48,16 @@ interface DashboardState {
   weatherData: WeatherData | null
   setWeatherCity: (city: string) => void
   setWeatherData: (data: WeatherData | null) => void
+
+  // --- 卡片显隐 & 布局 ---
+  hiddenCards: string[]
+  toggleCardVisibility: (cardId: string) => void
+  cardOrder: string[]
+  setCardOrder: (order: string[]) => void
+
+  // --- 背景 ---
+  background: { type: string; value?: string }
+  setBackground: (bg: { type: string; value?: string }) => void
 }
 
 // 预设习惯列表
@@ -271,6 +281,30 @@ export const useDashboardStore = create<DashboardState>()(
       setWeatherData: (data: WeatherData | null) => {
         set({ weatherData: data })
       },
+
+      // ===== 卡片显隐 & 布局 =====
+      hiddenCards: [],
+      cardOrder: ['todo', 'habits', 'links', 'pomodoro', 'weekstats', 'calendar', 'notes'],
+
+      toggleCardVisibility: (cardId: string) => {
+        set((s) => {
+          const hidden = s.hiddenCards.includes(cardId)
+            ? s.hiddenCards.filter((id) => id !== cardId)
+            : [...s.hiddenCards, cardId]
+          return { hiddenCards: hidden }
+        })
+      },
+
+      setCardOrder: (order: string[]) => {
+        set({ cardOrder: order })
+      },
+
+      // ===== 背景 =====
+      background: { type: 'paper' },
+
+      setBackground: (bg: { type: string; value?: string }) => {
+        set({ background: bg })
+      },
     }),
     {
       name: 'dashboard_store',
@@ -285,6 +319,9 @@ export const useDashboardStore = create<DashboardState>()(
         selectedNoteId: state.selectedNoteId,
         weatherCity: state.weatherCity,
         weatherData: state.weatherData,
+        hiddenCards: state.hiddenCards,
+        cardOrder: state.cardOrder,
+        background: state.background,
       }),
     },
   ),

@@ -46,6 +46,7 @@
 | 键盘快捷键 | N 聚焦笔记 / T 聚焦待办 / E 编辑首个待办，仅在非输入区生效 |
 | 加载骨架屏 | GSAP 流光扫过动画 + 7 卡片占位 + 淡出/淡入过渡 |
 | 数据导入导出 | 全部数据导出为 JSON 文件 / 从 JSON 文件恢复（二次确认） |
+| Markdown 导出 | 周报导出为 .md / 单篇笔记导出为 .md |
 
 # 三、技术栈
 
@@ -85,11 +86,11 @@ src/
     ├── Links.tsx               # 快捷链接
     ├── PomodoroTimer.tsx       # 番茄钟（SVG 圆环 + 蜂鸣 + Notification）
     ├── WeekStats.tsx           # 本周统计（4 指标 + 周报入口）
-    ├── WeeklyReport.tsx        # 周报弹窗（折线图 + 上周对比 + GSAP 入场/退场动画）
+    ├── WeeklyReport.tsx        # 周报弹窗（折线图 + 上周对比 + 导出 MD + GSAP 入场/退场）
     ├── MonthlyTrend.tsx        # 月度趋势弹窗（折线图 + 月份切换 + 统计摘要 + GSAP 入场/退场）
     ├── HeatmapModal.tsx        # 热力图弹窗（全年热力图 + 数据导入导出 + GSAP 动画）
     ├── Calendar.tsx            # 月日历 + 打卡标记
-    ├── Notes.tsx               # Markdown 笔记 + 快捷键 N 聚焦
+    ├── Notes.tsx               # Markdown 笔记 + 快捷键 N 聚焦 + 导出 MD
     ├── EasterEgg.tsx           # 治愈语录彩蛋
     ├── Toast.tsx               # 手帐风格 Toast（GSAP 滑入/淡出 + 撤销按钮）
     ├── Skeleton.tsx            # 骨架屏（GSAP 流光 + 7 卡片占位）
