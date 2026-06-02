@@ -1,10 +1,12 @@
 // 习惯打卡卡片 —— 含连续天数统计和月统计图表
 
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { CheckCircle2, Plus, Trash2, Flame, ChevronLeft, ChevronRight, Heart, Star } from 'lucide-react'
 import { format, startOfWeek, addWeeks, subWeeks, isToday, isFuture } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
+import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
+import HeatmapModal from './HeatmapModal'
 
 const ICON_OPTIONS = [
   { name: 'Droplets', label: '喝水' },
@@ -38,6 +40,7 @@ export default function Habits() {
   const [chartMonth, setChartMonth] = useState(() => new Date().getMonth())
   const [chartYear, setChartYear] = useState(() => new Date().getFullYear())
   const [chartHabitId, setChartHabitId] = useState<string | null>(null)
+  const [showHeatmap, setShowHeatmap] = useState(false)
 
   const handleAddHabit = () => {
     if (!newHabitName.trim()) return
@@ -47,11 +50,17 @@ export default function Habits() {
     setShowAddForm(false)
   }
 
-  const handleToggleDay = (habitId: string, dayIndex: number) => {
+  // 打卡点击：切换打卡状态 + GSAP 弹性缩放动画
+  const handleToggleDay = (habitId: string, dayIndex: number, e: React.MouseEvent<HTMLButtonElement>) => {
     const d = new Date(weekStart)
     d.setDate(d.getDate() + dayIndex)
     if (isFuture(d) && !isToday(d)) return
     toggleHabitDay(habitId, format(d, 'yyyy-MM-dd'))
+    // GSAP 弹性缩放：点击时先缩小再弹回，模拟弹性反馈
+    gsap.fromTo(e.currentTarget,
+      { scale: 1 },
+      { scale: 0.5, duration: 0.12, ease: 'back.out(3)', yoyo: true, repeat: 1 }
+    )
   }
 
   const weekDays = useMemo(() =>
@@ -78,6 +87,21 @@ export default function Habits() {
           习惯打卡
         </h2>
         <div className="flex items-center gap-2">
+          {/* 热力图图标按钮 */}
+          <button
+            onClick={() => setShowHeatmap(true)}
+            className="p-1.5 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary hover:text-warm-green transition-colors"
+            title="打卡热力图"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth="1.5" />
+              <line x1="3" y1="9" x2="21" y2="9" />
+              <line x1="9" y1="21" x2="9" y2="9" />
+              <rect x="11" y="11" width="3" height="3" rx="0.5" />
+              <rect x="15" y="11" width="3" height="3" rx="0.5" />
+              <rect x="11" y="15" width="3" height="3" rx="0.5" />
+            </svg>
+          </button>
           <div className="flex bg-notebook-bg rounded-lg p-0.5">
             <button onClick={() => setViewMode('week')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-white text-warm-orange shadow-sm' : 'text-text-secondary'}`}>周视图</button>
             <button onClick={() => setViewMode('month')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-white text-warm-orange shadow-sm' : 'text-text-secondary'}`}>月统计</button>
@@ -162,7 +186,7 @@ export default function Habits() {
                       const d = weekDays[i]
                       const futureDay = isFuture(d) && !isToday(d)
                       return (
-                        <button key={i} onClick={() => handleToggleDay(habit.id, i)} disabled={futureDay}
+                        <button key={i} onClick={(e) => handleToggleDay(habit.id, i, e)} disabled={futureDay}
                           className={`flex items-center justify-center justify-self-center w-7 h-7 rounded-full text-xs font-medium transition-all duration-200 ${
                             futureDay ? 'text-text-light cursor-not-allowed opacity-30' :
                             done ? 'bg-warm-green text-white scale-100 hover:scale-110 active:scale-90' :
@@ -221,6 +245,9 @@ export default function Habits() {
           )}
         </div>
       )}
+
+      {/* 热力图弹窗 */}
+      <HeatmapModal open={showHeatmap} onClose={() => setShowHeatmap(false)} />
     </div>
   )
 }

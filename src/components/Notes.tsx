@@ -1,10 +1,11 @@
 // 快速笔记卡片 —— Markdown 编辑 + 实时预览
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { FileText, Plus, Trash2, Eye, PenLine, Clock } from 'lucide-react'
+import { FileText, Plus, Trash2, Eye, PenLine, Clock, FileDown } from 'lucide-react'
 import { format } from 'date-fns'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
 
 export default function Notes() {
@@ -36,6 +37,44 @@ export default function Notes() {
   }, [updateNote])
 
   useEffect(() => { return () => { if (saveTimer.current) clearTimeout(saveTimer.current) } }, [])
+
+  // 标题输入框 ref + 快捷键聚焦标记
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const shouldFocusTitle = useRef(false)
+
+  // 选中笔记变化后，如果标记了需要聚焦，则聚焦标题输入并播放脉冲动画
+  useEffect(() => {
+    if (shouldFocusTitle.current && selectedNote && titleInputRef.current) {
+      shouldFocusTitle.current = false
+      titleInputRef.current.focus()
+      gsap.fromTo(titleInputRef.current,
+        { scale: 1, boxShadow: '0 0 0 0 rgba(212,165,165,0)' },
+        { scale: 1.03, boxShadow: '0 0 0 6px rgba(212,165,165,0.3)', duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 }
+      )
+    }
+  }, [selectedNote])
+
+  // 键盘快捷键 N：聚焦 / 新建笔记
+  useEffect(() => {
+    const handleShortcut = () => {
+      if (selectedNote) {
+        // 已有选中笔记，直接聚焦标题
+        titleInputRef.current?.focus()
+        if (titleInputRef.current) {
+          gsap.fromTo(titleInputRef.current,
+            { scale: 1, boxShadow: '0 0 0 0 rgba(212,165,165,0)' },
+            { scale: 1.03, boxShadow: '0 0 0 6px rgba(212,165,165,0.3)', duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 }
+          )
+        }
+      } else {
+        // 无选中笔记，先创建再聚焦（通过 useEffect 触发）
+        shouldFocusTitle.current = true
+        addNote()
+      }
+    }
+    window.addEventListener('shortcut:focus-note', handleShortcut)
+    return () => window.removeEventListener('shortcut:focus-note', handleShortcut)
+  }, [selectedNote, addNote])
 
   const formatTime = (isoStr: string) => {
     const d = new Date(isoStr)
@@ -85,12 +124,27 @@ export default function Notes() {
           {selectedNote ? (
             <>
               <div className="flex items-center justify-between mb-2">
-                <input type="text" value={localTitle} onChange={(e) => { setLocalTitle(e.target.value); autoSave(selectedNote.id, e.target.value, localContent) }}
+                <input type="text" id="note-title-input" ref={titleInputRef} value={localTitle} onChange={(e) => { setLocalTitle(e.target.value); autoSave(selectedNote.id, e.target.value, localContent) }}
                   placeholder="笔记标题"
                   className="flex-1 px-2 py-1 text-sm font-medium border border-transparent rounded-lg outline-none focus:border-border-light bg-transparent text-text-primary placeholder-text-light" />
                 <div className="flex items-center gap-1 ml-2">
                   <button onClick={() => setPreviewMode(false)} className={`p-1.5 rounded-lg transition-colors ${!previewMode ? 'bg-warm-orange/10 text-warm-orange' : 'text-text-secondary hover:text-text-primary'}`} title="编辑"><PenLine size={16} /></button>
                   <button onClick={() => setPreviewMode(true)} className={`p-1.5 rounded-lg transition-colors ${previewMode ? 'bg-warm-orange/10 text-warm-orange' : 'text-text-secondary hover:text-text-primary'}`} title="预览"><Eye size={16} /></button>
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([localContent || ''], { type: 'text/markdown;charset=utf-8' })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = `${(localTitle || '未命名笔记').replace(/[\\/:*?"<>|]/g, '_')}.md`
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    }}
+                    className="p-1.5 rounded-lg text-text-secondary hover:text-warm-green transition-colors"
+                    title="导出为 Markdown"
+                  >
+                    <FileDown size={16} />
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); deleteNote(selectedNote.id) }} className="p-1.5 rounded-lg text-text-secondary hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                 </div>
               </div>

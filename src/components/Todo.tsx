@@ -1,8 +1,11 @@
 // 待办事项卡片 —— 含进度统计
 
-import { useState, useMemo } from 'react'
-import { ClipboardList, Plus, Trash2, Check, X } from 'lucide-react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { ClipboardList, Plus, Trash2, Check, X, GripVertical } from 'lucide-react'
+import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
+import { showToast } from './Toast'
+import MonthlyTrend from './MonthlyTrend'
 import type { FilterType } from '../types'
 
 const FILTER_TABS: { key: FilterType; label: string }[] = [
@@ -17,11 +20,13 @@ export default function Todo() {
   const toggleTodo = useDashboardStore((s) => s.toggleTodo)
   const deleteTodo = useDashboardStore((s) => s.deleteTodo)
   const editTodo = useDashboardStore((s) => s.editTodo)
+  const reorderTodos = useDashboardStore((s) => s.reorderTodos)
 
   const [filter, setFilter] = useState<FilterType>('all')
   const [inputValue, setInputValue] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
+  const [showTrend, setShowTrend] = useState(false)
 
   const filtered = todos.filter((t) => {
     if (filter === 'active') return !t.completed
@@ -35,6 +40,163 @@ export default function Todo() {
     const total = todos.length
     return { done, total, percent: total > 0 ? Math.round((done / total) * 100) : 0 }
   }, [todos])
+
+  // GSAP 入场动画：追踪待办数量变化，为新项添加滑入淡入效果
+  const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
+  const prevTodosLength = useRef(todos.length)
+  const todoInputRef = useRef<HTMLInputElement>(null)
+
+  // 监听待办数量变化，为新增项播放 GSAP 入场动画
+  useEffect(() => {
+    if (todos.length > prevTodosLength.current) {
+      const newCount = todos.length - prevTodosLength.current
+      const newTodos = todos.slice(todos.length - newCount)
+      // 等待下一帧确保 DOM 已渲染
+      requestAnimationFrame(() => {
+        newTodos.forEach((todo) => {
+          const el = itemRefs.current.get(todo.id)
+          if (el) {
+            gsap.from(el, { opacity: 0, x: -20, duration: 0.35, ease: 'power2.out' })
+          }
+        })
+      })
+    }
+    prevTodosLength.current = todos.length
+  }, [todos])
+
+  // GSAP 脉冲动画辅助函数：用于快捷键视觉反馈
+  const pulseElement = useCallback((el: HTMLElement) => {
+    gsap.fromTo(el,
+      { scale: 1, boxShadow: '0 0 0 0 rgba(212,165,165,0)' },
+      { scale: 1.03, boxShadow: '0 0 0 6px rgba(212,165,165,0.3)', duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 }
+    )
+  }, [])
+
+  // 键盘快捷键监听：T 聚焦输入框，E 编辑第一个未完成待办
+  useEffect(() => {
+    const handleShortcut = (e: Event) => {
+      const { type } = e as CustomEvent
+      if (type === 'shortcut:focus-todo') {
+        todoInputRef.current?.focus()
+        if (todoInputRef.current) pulseElement(todoInputRef.current)
+      } else if (type === 'shortcut:edit-todo') {
+        const firstActive = todos.find((t) => !t.completed)
+        if (firstActive) {
+          setEditingId(firstActive.id)
+          setEditingText(firstActive.text)
+        }
+      }
+    }
+    window.addEventListener('shortcut:focus-todo', handleShortcut)
+    window.addEventListener('shortcut:edit-todo', handleShortcut)
+    return () => {
+      window.removeEventListener('shortcut:focus-todo', handleShortcut)
+      window.removeEventListener('shortcut:edit-todo', handleShortcut)
+    }
+  }, [todos, pulseElement])
+
+  // 防止重复点击删除
+  const deletingIds = useRef<Set<string>>(new Set())
+
+  // 删除待办：GSAP 收缩淡出动画 → 移除 → 显示 Toast 撤销提示
+  const handleDelete = (id: string) => {
+    if (deletingIds.current.has(id)) return // 防止重复触发
+    const todo = todos.find((t) => t.id === id)
+    if (!todo) return
+
+    deletingIds.current.add(id)
+    const el = itemRefs.current.get(id)
+
+    // 备份待办数据，供撤销时恢复
+    const snapshot = { text: todo.text, completed: todo.completed }
+
+    const doRemove = () => {
+      deleteTodo(id)
+      deletingIds.current.delete(id)
+      showToast({
+        message: `已删除「${snapshot.text.slice(0, 10)}${snapshot.text.length > 10 ? '...' : ''}」`,
+        showUndo: true,
+        onUndo: () => {
+          // 撤销：重新添加到 store 并恢复完成状态
+          const store = useDashboardStore.getState()
+          store.addTodo(snapshot.text)
+          if (snapshot.completed) {
+            const restored = store.todos[store.todos.length - 1]
+            if (restored) store.toggleTodo(restored.id)
+          }
+        },
+      })
+    }
+
+    if (el) {
+      // GSAP 收缩淡出动画
+      el.style.overflow = 'hidden'
+      gsap.to(el, {
+        opacity: 0,
+        height: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: doRemove,
+      })
+    } else {
+      doRemove()
+    }
+  }
+
+  // --- 拖拽排序状态 ---
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+
+  // 拖拽开始：记录被拖拽的待办 ID
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDragId(id)
+    e.dataTransfer.effectAllowed = 'move'
+    // 设置拖拽时的半透明预览
+    const el = e.currentTarget as HTMLElement
+    requestAnimationFrame(() => { el.style.opacity = '0.4' })
+  }
+
+  // 拖拽经过：标记当前悬停目标
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (id !== dragId) setDragOverId(id)
+  }
+
+  // 拖拽离开：清除悬停标记
+  const handleDragLeave = () => {
+    setDragOverId(null)
+  }
+
+  // 放置：交换两个待办的位置 + GSAP 落地动画
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    if (dragId && dragId !== targetId) {
+      reorderTodos(dragId, targetId)
+      // 等待 React 重渲染后对移动项播放落地脉冲
+      requestAnimationFrame(() => {
+        const el = itemRefs.current.get(dragId)
+        if (el) {
+          gsap.fromTo(el,
+            { scale: 1.04, boxShadow: '0 0 0 0 rgba(212,165,165,0)' },
+            { scale: 1, boxShadow: '0 0 0 10px rgba(212,165,165,0)', duration: 0.3, ease: 'power2.out' }
+          )
+        }
+      })
+    }
+    setDragId(null)
+    setDragOverId(null)
+  }
+
+  // 拖拽结束（未放置或取消）：恢复透明度
+  const handleDragEnd = (e: React.DragEvent) => {
+    const el = e.currentTarget as HTMLElement
+    el.style.opacity = '1'
+    setDragId(null)
+    setDragOverId(null)
+  }
 
   const handleAdd = () => {
     if (!inputValue.trim()) return
@@ -51,6 +213,17 @@ export default function Todo() {
           待办事项
         </h2>
         <div className="flex items-center gap-2">
+          {/* 月度趋势图标按钮 */}
+          <button
+            onClick={() => setShowTrend(true)}
+            className="p-1.5 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary hover:text-warm-orange transition-colors"
+            title="月度趋势"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="4" strokeWidth="1.5" />
+              <polyline points="7,15 10,10 13,13 17,7" />
+            </svg>
+          </button>
           {/* 筛选标签 */}
           <div className="flex bg-notebook-bg rounded-lg p-0.5">
             {FILTER_TABS.map((tab) => (
@@ -89,6 +262,8 @@ export default function Todo() {
       {/* 添加输入 */}
       <div className="flex items-center gap-2 mb-3">
         <input
+          id="todo-input"
+          ref={todoInputRef}
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -119,10 +294,23 @@ export default function Todo() {
             {filtered.map((todo) => (
               <li
                 key={todo.id}
-                className={`group flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-notebook-bg/60 dark:hover:bg-white/5 transition-colors ${
-                  todo.completed ? 'opacity-60' : ''
+                ref={(el) => { if (el) itemRefs.current.set(todo.id, el) }}
+                draggable={editingId !== todo.id}
+                onDragStart={(e) => handleDragStart(e, todo.id)}
+                onDragOver={(e) => handleDragOver(e, todo.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, todo.id)}
+                onDragEnd={handleDragEnd}
+                className={`group flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-notebook-bg/60 dark:hover:bg-white/5 transition-colors cursor-grab active:cursor-grabbing ${
+                  dragOverId === todo.id ? 'border-t-2 border-[rgb(var(--accent-primary))] -mt-[2px]' : 'border-t-2 border-transparent'
+                } ${
+                  dragId === todo.id ? 'opacity-40' : todo.completed ? 'opacity-60' : ''
                 }`}
               >
+                {/* 拖拽手柄：hover 时显示 */}
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 cursor-grab text-text-light hover:text-text-secondary">
+                  <GripVertical size={14} />
+                </span>
                 <button
                   onClick={() => toggleTodo(todo.id)}
                   className={`flex items-center justify-center w-5 h-5 rounded-md border-2 shrink-0 transition-all duration-200 ${
@@ -158,7 +346,7 @@ export default function Todo() {
 
                 {editingId !== todo.id && (
                   <button
-                    onClick={() => deleteTodo(todo.id)}
+                    onClick={() => handleDelete(todo.id)}
                     className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
                   >
                     <Trash2 size={14} />
@@ -169,6 +357,9 @@ export default function Todo() {
           </ul>
         )}
       </div>
+
+      {/* 月度趋势弹窗 */}
+      <MonthlyTrend open={showTrend} onClose={() => setShowTrend(false)} />
     </div>
   )
 }

@@ -17,6 +17,7 @@ interface DashboardState {
   toggleTodo: (id: string) => void
   deleteTodo: (id: string) => void
   editTodo: (id: string, text: string) => void
+  reorderTodos: (fromId: string, toId: string) => void
 
   // --- 习惯打卡 ---
   habits: Habit[]
@@ -105,6 +106,19 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => ({
           todos: s.todos.map((t) => (t.id === id ? { ...t, text: text.trim() } : t)),
         }))
+      },
+
+      // 拖拽排序：将 fromId 项移动到 toId 项的位置
+      reorderTodos: (fromId: string, toId: string) => {
+        set((s) => {
+          const fromIndex = s.todos.findIndex((t) => t.id === fromId)
+          const toIndex = s.todos.findIndex((t) => t.id === toId)
+          if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return s
+          const newTodos = [...s.todos]
+          const [moved] = newTodos.splice(fromIndex, 1)
+          newTodos.splice(toIndex, 0, moved)
+          return { todos: newTodos }
+        })
       },
 
       // ===== 习惯打卡 =====
