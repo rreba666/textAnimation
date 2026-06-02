@@ -15,14 +15,12 @@ interface Preset {
   type: string
   name: string
   css: string
-  isDark?: boolean
 }
 
 const PRESETS: Preset[] = [
   { type: 'paper', name: '米白纸纹', css: '#F8F5EF' },
   { type: 'pink', name: '淡粉渐变', css: 'linear-gradient(135deg, #FDE8E8, #F5F0E8)' },
   { type: 'ink', name: '水墨灰', css: '#E8E6E1' },
-  { type: 'dark', name: '星空深色', css: '#1a1a2e', isDark: true },
   { type: 'forest', name: '森林绿', css: '#DCE8D9' },
 ]
 
@@ -108,7 +106,7 @@ export default function BackgroundPicker({ open, onClose }: Props) {
               }}
             >
               <span className="absolute inset-x-0 bottom-2 text-xs font-medium"
-                style={{ color: p.isDark ? 'rgba(255,255,255,0.85)' : 'rgb(var(--text-primary))' }}>
+                style={{ color: 'rgb(var(--text-primary))' }}>
                 {p.name}
               </span>
             </button>

@@ -1,7 +1,7 @@
 // 待办事项卡片 —— 含进度统计
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { ClipboardList, Plus, Trash2, Check, X, GripVertical } from 'lucide-react'
+import { ClipboardList, Plus, Trash2, Check, X, GripVertical, Bell, BellRing } from 'lucide-react'
 import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
 import { showToast } from './Toast'
@@ -21,12 +21,15 @@ export default function Todo() {
   const deleteTodo = useDashboardStore((s) => s.deleteTodo)
   const editTodo = useDashboardStore((s) => s.editTodo)
   const reorderTodos = useDashboardStore((s) => s.reorderTodos)
+  const setTodoReminder = useDashboardStore((s) => s.setTodoReminder)
 
   const [filter, setFilter] = useState<FilterType>('all')
   const [inputValue, setInputValue] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
   const [showTrend, setShowTrend] = useState(false)
+  const [reminderId, setReminderId] = useState<string | null>(null)
+  const [reminderTime, setReminderTime] = useState('')
 
   const filtered = todos.filter((t) => {
     if (filter === 'active') return !t.completed
@@ -345,12 +348,71 @@ export default function Todo() {
                 )}
 
                 {editingId !== todo.id && (
-                  <button
-                    onClick={() => handleDelete(todo.id)}
-                    className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <>
+                    {/* 提醒按钮 */}
+                    {!todo.completed && (
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            if (reminderId === todo.id) { setReminderId(null); return }
+                            setReminderId(todo.id)
+                            setReminderTime(todo.reminderAt || '')
+                          }}
+                          className={`p-1 rounded-lg transition-all opacity-0 group-hover:opacity-100 ${
+                            todo.reminderAt
+                              ? 'text-warm-orange hover:bg-warm-orange/10'
+                              : 'text-text-light hover:text-warm-orange hover:bg-warm-orange/10'
+                          }`}
+                          title={todo.reminderAt ? `提醒：${todo.reminderAt}` : '设置提醒'}
+                        >
+                          {todo.reminderAt ? <BellRing size={14} /> : <Bell size={14} />}
+                        </button>
+
+                        {/* 时间选择器 */}
+                        {reminderId === todo.id && (
+                          <div
+                            className="absolute right-0 top-full mt-1 p-2 rounded-xl border shadow-lg z-20 flex items-center gap-1.5 bg-white dark:bg-[rgb(var(--bg-card))]"
+                            style={{ borderColor: 'rgb(var(--border-light))' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="time"
+                              value={reminderTime}
+                              onChange={(e) => setReminderTime(e.target.value)}
+                              className="w-24 px-2 py-1 text-xs border rounded-lg outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary"
+                              style={{ borderColor: 'rgb(var(--border-light))' }}
+                            />
+                            <button
+                              onClick={() => {
+                                setTodoReminder(todo.id, reminderTime || null)
+                                setReminderId(null)
+                              }}
+                              className="px-2 py-1 text-xs bg-warm-orange text-white rounded-lg hover:opacity-90"
+                            >
+                              确定
+                            </button>
+                            <button
+                              onClick={() => {
+                                setTodoReminder(todo.id, null)
+                                setReminderId(null)
+                              }}
+                              className="p-1 text-text-light hover:text-red-400 rounded"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 删除按钮 */}
+                    <button
+                      onClick={() => handleDelete(todo.id)}
+                      className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </>
                 )}
               </li>
             ))}

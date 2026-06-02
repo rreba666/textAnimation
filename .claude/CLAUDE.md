@@ -31,7 +31,7 @@
 | 月度进度 | 当月已过天数 + 百分比渐变进度条 |
 | 每日一言 | hitokoto.cn 免费 API，加载失败回退内置语录 |
 | 倒计时 | 今日剩余 HH:MM + 本周剩余 X 天，每分钟更新 |
-| 番茄钟 | 25/15/5 分钟倒计时，SVG 圆环，通知 + 蜂鸣提示 |
+| 番茄钟 | 25/15/5 分钟倒计时，SVG 圆环，通知 + 蜂鸣提示，刷新状态保持 |
 | 本周统计 | 完成待办 / 打卡次数 / 连续天数 / 新增笔记 + 周报弹窗（折线图 + 上周对比） |
 | 日历 | 月视图 + 打卡标记圆点 + 前后翻月 + 今日高亮 |
 | 天气模块 | Open-Meteo 免费 API，当前天气 + 3 天预报，10 分钟缓存 |
@@ -47,6 +47,9 @@
 | 加载骨架屏 | GSAP 流光扫过动画 + 7 卡片占位 + 淡出/淡入过渡 |
 | 数据导入导出 | 全部数据导出为 JSON 文件 / 从 JSON 文件恢复（二次确认） |
 | Markdown 导出 | 周报导出为 .md / 单篇笔记导出为 .md |
+| 通知与提醒 | Notification API：番茄钟结束 / 待办提醒 / 每晚 8 点打卡提醒 / 每日首次打开昨日总结 |
+| 卡片管理 | 显隐切换 + 拖拽排序 + 布局记忆 |
+| 背景切换 | 4 种预设（米白纸纹/淡粉渐变/水墨灰/森林绿）+ 深色主题联动 |
 
 # 三、技术栈
 
@@ -72,9 +75,12 @@ src/
 ├── main.tsx                    # 入口（无 StrictMode）
 ├── index.css                   # @font-face + 双主题变量(RGB) + 手帐卡片 + 覆盖规则 + 动画
 ├── vite-env.d.ts
-├── types/index.ts              # Todo(含completedAt)/Note/Habit/LinkItem/WeatherData
+├── types/index.ts              # Todo(含completedAt/reminderAt)/Note/Habit/LinkItem/WeatherData
 ├── utils/storage.ts            # localStorage 读写 + ID 生成
 ├── store/useDashboardStore.ts  # Zustand 全局状态 + persist + HMR 保护
+├── hooks/
+│   ├── useTodoReminder.ts      # 待办提醒定时检查
+│   └── useHabitReminder.ts     # 打卡提醒定时检查
 └── components/
     ├── Header.tsx              # 问候 + 时钟 + 日期 + 天气 + 每日一言 + 主题切换 + 进度条 + 倒计时
     ├── Greeting.tsx            # 昼夜问候（6 时段）
@@ -84,11 +90,14 @@ src/
     ├── Todo.tsx                # 待办 + 进度统计 + GSAP 入场动画 + 快捷键 T/E + 拖拽排序
     ├── Habits.tsx              # 习惯打卡（爱心/星星 + Recharts + GSAP 弹性缩放）
     ├── Links.tsx               # 快捷链接
-    ├── PomodoroTimer.tsx       # 番茄钟（SVG 圆环 + 蜂鸣 + Notification）
+    ├── PomodoroTimer.tsx       # 番茄钟（SVG 圆环 + 蜂鸣 + Notification + 状态持久化）
     ├── WeekStats.tsx           # 本周统计（4 指标 + 周报入口）
     ├── WeeklyReport.tsx        # 周报弹窗（折线图 + 上周对比 + 导出 MD + GSAP 入场/退场）
     ├── MonthlyTrend.tsx        # 月度趋势弹窗（折线图 + 月份切换 + 统计摘要 + GSAP 入场/退场）
     ├── HeatmapModal.tsx        # 热力图弹窗（全年热力图 + 数据导入导出 + GSAP 动画）
+    ├── CardMenu.tsx            # 卡片「⋯」下拉菜单
+    ├── ManageCardsModal.tsx    # 管理卡片弹窗（显隐开关 + 拖拽排序）
+    ├── BackgroundPicker.tsx    # 背景选择器（4 种预设 + GSAP 动画）
     ├── Calendar.tsx            # 月日历 + 打卡标记
     ├── Notes.tsx               # Markdown 笔记 + 快捷键 N 聚焦 + 导出 MD
     ├── EasterEgg.tsx           # 治愈语录彩蛋

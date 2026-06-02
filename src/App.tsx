@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import gsap from 'gsap'
+import { format, startOfWeek, endOfWeek, isWithinInterval, subDays } from 'date-fns'
 import { useDashboardStore } from './store/useDashboardStore'
+import { useTodoReminder } from './hooks/useTodoReminder'
+import { useHabitReminder } from './hooks/useHabitReminder'
 import DashboardSkeleton from './components/Skeleton'
 import Header from './components/Header'
 import CardMenu from './components/CardMenu'
@@ -89,6 +92,58 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // ---- 通知权限请求（延迟 2 秒） ----
+  useEffect(() => {
+    if (!('Notification' in window)) return
+    if (Notification.permission !== 'default') return
+    const timer = setTimeout(() => {
+      Notification.requestPermission()
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // ---- 每日首次打开：弹出昨日总结 ----
+  useEffect(() => {
+    const KEY = 'daily_summary_last_date'
+    const today = format(new Date(), 'yyyy-MM-dd')
+    const lastDate = localStorage.getItem(KEY)
+    if (lastDate === today) return
+
+    // 标记今天已展示
+    localStorage.setItem(KEY, today)
+
+    // 延迟等页面加载完成后弹出
+    const timer = setTimeout(() => {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return
+
+      const store = useDashboardStore.getState()
+      const yesterday = subDays(new Date(), 1)
+
+      // 昨日完成待办
+      const doneTodos = store.todos.filter(
+        (t) => t.completed && t.completedAt && format(new Date(t.completedAt), 'yyyy-MM-dd') === format(yesterday, 'yyyy-MM-dd'),
+      ).length
+
+      // 昨日打卡次数
+      const dateStr = format(yesterday, 'yyyy-MM-dd')
+      const checkins = (store.habitRecords[dateStr] || []).length
+
+      // 当前连续天数
+      const streak = store.habits.length > 0
+        ? Math.max(...store.habits.map((h) => store.getHabitStreak(h.id)))
+        : 0
+
+      const body = `完成待办：${doneTodos} 项\n打卡次数：${checkins} 次\n连续打卡：${streak} 天`
+      new Notification('昨日总结', { body })
+    }, 3000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // ---- 后台提醒 hooks ----
+  useTodoReminder()
+  useHabitReminder()
 
   // ---- 卡片拖拽排序 ----
   const handleCardDragStart = (e: React.DragEvent, id: string) => {
@@ -177,6 +232,5 @@ const bgPresets: Record<string, string> = {
   paper:  '#F8F5EF',
   pink:   'linear-gradient(135deg, #FDE8E8, #F5F0E8)',
   ink:    '#E8E6E1',
-  dark:   '#1a1a2e',
   forest: '#DCE8D9',
 }

@@ -18,6 +18,7 @@ interface DashboardState {
   deleteTodo: (id: string) => void
   editTodo: (id: string, text: string) => void
   reorderTodos: (fromId: string, toId: string) => void
+  setTodoReminder: (id: string, reminderAt: string | null) => void
 
   // --- 习惯打卡 ---
   habits: Habit[]
@@ -58,6 +59,13 @@ interface DashboardState {
   // --- 背景 ---
   background: { type: string; value?: string }
   setBackground: (bg: { type: string; value?: string }) => void
+
+  // --- 番茄钟持久化 ---
+  pomodoroPreset: number
+  pomodoroTimeLeft: number
+  pomodoroRunning: boolean
+  pomodoroStartedAt: string | null
+  setPomodoroState: (s: { preset: number; timeLeft: number; running: boolean; startedAt: string | null }) => void
 }
 
 // 预设习惯列表
@@ -115,6 +123,13 @@ export const useDashboardStore = create<DashboardState>()(
         if (!text.trim()) return
         set((s) => ({
           todos: s.todos.map((t) => (t.id === id ? { ...t, text: text.trim() } : t)),
+        }))
+      },
+
+      // 设置待办提醒时间（HH:mm 或 null 清除）
+      setTodoReminder: (id: string, reminderAt: string | null) => {
+        set((s) => ({
+          todos: s.todos.map((t) => (t.id === id ? { ...t, reminderAt: reminderAt || undefined } : t)),
         }))
       },
 
@@ -305,6 +320,21 @@ export const useDashboardStore = create<DashboardState>()(
       setBackground: (bg: { type: string; value?: string }) => {
         set({ background: bg })
       },
+
+      // ===== 番茄钟持久化 =====
+      pomodoroPreset: 25,
+      pomodoroTimeLeft: 25 * 60,
+      pomodoroRunning: false,
+      pomodoroStartedAt: null,
+
+      setPomodoroState: (s) => {
+        set({
+          pomodoroPreset: s.preset,
+          pomodoroTimeLeft: s.timeLeft,
+          pomodoroRunning: s.running,
+          pomodoroStartedAt: s.startedAt,
+        })
+      },
     }),
     {
       name: 'dashboard_store',
@@ -322,6 +352,10 @@ export const useDashboardStore = create<DashboardState>()(
         hiddenCards: state.hiddenCards,
         cardOrder: state.cardOrder,
         background: state.background,
+        pomodoroPreset: state.pomodoroPreset,
+        pomodoroTimeLeft: state.pomodoroTimeLeft,
+        pomodoroRunning: state.pomodoroRunning,
+        pomodoroStartedAt: state.pomodoroStartedAt,
       }),
     },
   ),

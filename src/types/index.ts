@@ -7,6 +7,7 @@ export interface Todo {
   completed: boolean
   completedAt?: string // 完成时间（ISO），未完成时为 undefined
   createdAt: string // ISO 日期字符串
+  reminderAt?: string // 提醒时间（HH:mm 格式），未设置时为 undefined
 }
 
 /** 笔记 */
