@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
-  LayoutGrid, Palette,
+  LayoutGrid, Palette, Database,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -15,6 +15,7 @@ import DailyQuote from './DailyQuote'
 import Countdown from './Countdown'
 import ManageCardsModal from './ManageCardsModal'
 import BackgroundPicker from './BackgroundPicker'
+import DataTipModal from './DataTipModal'
 import type { WeatherData, ForecastDay } from '../types'
 
 // WMO 天气代码 → 描述
@@ -56,6 +57,7 @@ export default function Header() {
   const toggleTheme = useDashboardStore((s) => s.toggleTheme)
   const [showCardManager, setShowCardManager] = useState(false)
   const [showBgPicker, setShowBgPicker] = useState(false)
+  const [showDataTip, setShowDataTip] = useState(false)
 
   // 时钟
   useEffect(() => {
@@ -216,6 +218,15 @@ export default function Header() {
             </button>
           )}
 
+          {/* 数据备份提醒 */}
+          <button
+            onClick={() => setShowDataTip(true)}
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            title="数据备份提醒"
+          >
+            <Database size={18} />
+          </button>
+
           {/* 管理卡片 */}
           <button
             onClick={() => setShowCardManager(true)}
@@ -244,6 +255,7 @@ export default function Header() {
           </button>
 
           {/* 弹窗 */}
+          <DataTipModal open={showDataTip} onClose={() => setShowDataTip(false)} />
           <ManageCardsModal open={showCardManager} onClose={() => setShowCardManager(false)} />
           <BackgroundPicker open={showBgPicker} onClose={() => setShowBgPicker(false)} />
         </div>

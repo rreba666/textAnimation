@@ -18,6 +18,7 @@ import Calendar from './components/Calendar'
 import Notes from './components/Notes'
 import EasterEgg from './components/EasterEgg'
 import ToastContainer from './components/Toast'
+import DataTipModal from './components/DataTipModal'
 
 // 卡片注册表：id → 组件 + 尺寸
 const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: string }> = {
@@ -44,6 +45,7 @@ export default function App() {
   // 卡片拖拽排序状态
   const [cardDragId, setCardDragId] = useState<string | null>(null)
   const [cardDragOverId, setCardDragOverId] = useState<string | null>(null)
+  const [showAutoTip, setShowAutoTip] = useState(false)
 
   // 可见且按序排列的卡片列表
   const visibleCards = useMemo(
@@ -141,20 +143,39 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  // ---- 首次访问：自动弹出数据安全提示 ----
+  useEffect(() => {
+    const KEY = 'hasSeenDataTip'
+    if (localStorage.getItem(KEY)) return
+    const timer = setTimeout(() => {
+      setShowAutoTip(true)
+      localStorage.setItem(KEY, '1')
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
   // ---- 后台提醒 hooks ----
   useTodoReminder()
   useHabitReminder()
 
-  // ---- 卡片拖拽排序 ----
+  // ---- 卡片拖拽排序（增强视觉反馈） ----
   const handleCardDragStart = (e: React.DragEvent, id: string) => {
     setCardDragId(id)
     e.dataTransfer.effectAllowed = 'move'
+    // 拖拽中：提亮阴影 + 抬高层级
+    const el = e.currentTarget as HTMLElement
+    el.style.zIndex = '100'
+    el.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)'
+    el.style.transition = 'box-shadow 0.15s ease-out'
   }
+
   const handleCardDragOver = (e: React.DragEvent, id: string) => {
     e.preventDefault()
     if (id !== cardDragId) setCardDragOverId(id)
   }
+
   const handleCardDragLeave = () => setCardDragOverId(null)
+
   const handleCardDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
     if (cardDragId && cardDragId !== targetId) {
@@ -173,7 +194,20 @@ export default function App() {
     setCardDragId(null)
     setCardDragOverId(null)
   }
-  const handleCardDragEnd = () => { setCardDragId(null); setCardDragOverId(null) }
+
+  // 拖拽结束：清理样式 + GSAP 弹性回弹
+  const handleCardDragEnd = (e: React.DragEvent) => {
+    const el = e.currentTarget as HTMLElement
+    el.style.zIndex = ''
+    el.style.boxShadow = ''
+    // GSAP 弹性落位
+    gsap.fromTo(el,
+      { scale: 1.03 },
+      { scale: 1, duration: 0.3, ease: 'elastic.out(1, 0.3)' }
+    )
+    setCardDragId(null)
+    setCardDragOverId(null)
+  }
 
   return (
     <div id="app-root" className="min-h-screen">
@@ -201,11 +235,14 @@ export default function App() {
                       onDragLeave={handleCardDragLeave}
                       onDrop={(e) => handleCardDrop(e, id)}
                       onDragEnd={handleCardDragEnd}
-                      className={`relative group/card cursor-grab active:cursor-grabbing transition-opacity ${
-                        cardDragId === id ? 'opacity-40' : ''
+                      className={`relative group/card cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                        cardDragId === id ? 'opacity-60' : ''
                       } ${
-                        cardDragOverId === id ? 'ring-2 ring-[rgb(var(--accent-primary))] rounded-2xl' : ''
+                        cardDragOverId === id
+                          ? 'rounded-2xl border-2 border-dashed'
+                          : ''
                       } ${className}`}
+                      style={cardDragOverId === id ? { borderColor: 'rgb(var(--accent-primary))', background: 'rgb(var(--accent-primary) / 0.06)' } : undefined}
                     >
                       {/* 卡片菜单（hover 时显示） */}
                       <div className="absolute top-3 right-3 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
@@ -220,6 +257,7 @@ export default function App() {
 
             <EasterEgg />
             <ToastContainer />
+            <DataTipModal open={showAutoTip} onClose={() => setShowAutoTip(false)} />
           </div>
         )}
       </div>
