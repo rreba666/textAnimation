@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { X, ChevronLeft, ChevronRight, Download, Upload } from 'lucide-react'
 import { format, startOfYear, endOfYear, eachDayOfInterval, startOfWeek, endOfWeek, getISOWeek, getDay } from 'date-fns'
 import gsap from 'gsap'
+import { showConfirm } from './ConfirmDialog'
 import { useDashboardStore } from '../store/useDashboardStore'
 
 interface Props {
@@ -161,7 +162,8 @@ export default function HeatmapModal({ open, onClose }: Props) {
       try {
         const text = await file.text()
         const data = JSON.parse(text)
-        if (!window.confirm('导入将覆盖当前所有数据（待办、习惯、打卡记录、笔记、链接等），确定继续？')) return
+        const confirmed = await showConfirm({ title: '确认导入', message: '导入将覆盖当前所有数据（待办、习惯、打卡记录、笔记、链接等），确定继续？', confirmText: '确认导入', cancelText: '取消' })
+        if (!confirmed) return
         const store = useDashboardStore.getState()
         if (data.todos) store.todos = data.todos
         if (data.habits) store.habits = data.habits

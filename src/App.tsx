@@ -38,6 +38,7 @@ import Notes from './components/Notes'
 import EasterEgg from './components/EasterEgg'
 import ToastContainer from './components/Toast'
 import DataTipModal from './components/DataTipModal'
+import ConfirmDialog from './components/ConfirmDialog'
 
 // 卡片注册表
 const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: string }> = {
@@ -293,6 +294,7 @@ export default function App() {
 
             <EasterEgg />
             <ToastContainer />
+            <ConfirmDialog />
             <DataTipModal open={showAutoTip} onClose={() => setShowAutoTip(false)} />
           </div>
         )}
