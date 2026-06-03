@@ -2,9 +2,48 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- PWA 主配置 -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#D4A5A5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="日常手记" />
+
+    <!-- Edge / Windows 磁贴 -->
+    <meta name="msapplication-TileColor" content="#D4A5A5" />
+    <meta name="msapplication-TileImage" content="/icon-192.svg" />
+
+    <!-- 图标：SVG 优先（Chrome/Edge/Android），iOS 需 PNG 可后续补充 -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>儿戏的日常手记</title>
+
+    <!-- Service Worker 注册（仅 HTTPS / localhost 下生效） -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
+            console.log('PWA: Service Worker 已注册', reg.scope)
+            // 检测更新
+            reg.addEventListener('updatefound', () => {
+              const worker = reg.installing
+              if (worker) {
+                worker.addEventListener('statechange', () => {
+                  if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('PWA: 新版本已就绪，刷新页面后生效')
+                  }
+                })
+              }
+            })
+          }).catch((err) => {
+            console.log('PWA: Service Worker 注册失败（非 HTTPS 环境预期行为）', err.message)
+          })
+        })
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

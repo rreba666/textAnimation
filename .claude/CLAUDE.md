@@ -50,6 +50,7 @@
 | 通知与提醒 | Notification API：番茄钟结束 / 待办提醒 / 每晚 8 点打卡提醒 / 每日首次打开昨日总结 |
 | 卡片管理 | 显隐切换 + 拖拽排序 + 布局记忆 |
 | 背景切换 | 4 种预设（米白纸纹/淡粉渐变/水墨灰/森林绿）+ 深色主题联动 |
+| PWA 支持 | manifest + Service Worker 离线缓存 + 可安装到桌面 + 自定义安装按钮 |
 
 # 三、技术栈
 
@@ -65,6 +66,7 @@
 | 图标 | lucide-react 0.460 |
 | 字体 | 钉钉进步体（标题）+ JetBrains Mono（代码/数字）+ 系统默认（正文） |
 | 拖拽 | @dnd-kit/core + @dnd-kit/sortable（排序动画 + DragOverlay 浮层） |
+| PWA | manifest.json + Service Worker（离线缓存 + 可安装） |
 | 包管理 | pnpm |
 
 # 四、项目结构
@@ -103,6 +105,7 @@ src/
     ├── EasterEgg.tsx           # 治愈语录彩蛋
     ├── Toast.tsx               # 手帐风格 Toast（GSAP 滑入/淡出 + 撤销按钮）
     ├── Skeleton.tsx            # 骨架屏（GSAP 流光 + 7 卡片占位）
+    ├── ConfirmDialog.tsx       # 自定义确认弹窗（函数式调用）
     └── ErrorBoundary.tsx       # 渲染错误兜底
 ```
 

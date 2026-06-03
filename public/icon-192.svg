@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 192 192">
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <!-- 背景：暖粉莫兰迪色 -->
   <rect width="192" height="192" rx="36" fill="#D4A5A5"/>
+  <!-- 笔记本内页线条 -->
   <rect x="36" y="30" width="120" height="140" rx="12" fill="#FFFEF9"/>
+  <!-- 横线装饰 -->
   <line x1="52" y1="74" x2="140" y2="74" stroke="#D4A5A5" stroke-width="2.5" stroke-linecap="round"/>
   <line x1="52" y1="94" x2="140" y2="94" stroke="#D4A5A5" stroke-width="2.5" stroke-linecap="round"/>
   <line x1="52" y1="114" x2="120" y2="114" stroke="#D4A5A5" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 对勾图标 -->
   <circle cx="62" cy="58" r="10" fill="#9CAF88"/>
   <path d="M57 58 l4 4 8 -7" stroke="#FFFEF9" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

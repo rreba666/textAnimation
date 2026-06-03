@@ -1,4 +1,10 @@
-// 顶部栏：问候 + 时间 + 日期 + 天气 + 主题切换 + 进度条
+// 顶部栏：问候 + 时间 + 日期 + 天气 + 主题切换 + PWA 安装 + 进度条
+
+// PWA beforeinstallprompt 事件类型（Chrome 非标准 API）
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
 
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -16,6 +22,7 @@ import Countdown from './Countdown'
 import ManageCardsModal from './ManageCardsModal'
 import BackgroundPicker from './BackgroundPicker'
 import DataTipModal from './DataTipModal'
+import { showConfirm } from './ConfirmDialog'
 import type { WeatherData, ForecastDay } from '../types'
 
 // WMO 天气代码 → 描述
@@ -58,6 +65,40 @@ export default function Header() {
   const [showCardManager, setShowCardManager] = useState(false)
   const [showBgPicker, setShowBgPicker] = useState(false)
   const [showDataTip, setShowDataTip] = useState(false)
+
+  // PWA 安装：监听 beforeinstallprompt（线上 HTTPS 触发）+ 开发环境常显
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [installed, setInstalled] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setInstallPrompt(e as BeforeInstallPromptEvent)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => { setInstalled(true); setInstallPrompt(null) })
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  // 开发环境(localhost)或线上 HTTPS 均可显示安装按钮
+  const showInstallBtn = !installed && (!!installPrompt || window.location.hostname === 'localhost')
+
+  const handleInstall = useCallback(async () => {
+    if (installPrompt) {
+      // 线上 HTTPS：调用浏览器原生安装弹窗
+      installPrompt.prompt()
+      const result = await installPrompt.userChoice
+      if (result.outcome === 'accepted') setInstallPrompt(null)
+    } else {
+      // localhost 降级：引导用户手动安装
+      await showConfirm({
+        title: 'PWA 安装提示',
+        message: 'PWA 安装需要 HTTPS 环境。\n\n线上部署后：\n• Chrome/Edge：地址栏右侧点击安装图标\n• 手机浏览器：菜单 → 添加到主屏幕\n\n当前 localhost 请用 Chrome DevTools → Application → Manifest → Install 测试',
+        confirmText: '知道了',
+        cancelText: '',
+      })
+    }
+  }, [installPrompt])
 
   // 时钟
   useEffect(() => {
@@ -253,6 +294,22 @@ export default function Header() {
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
+
+          {/* PWA 安装按钮：线上 HTTPS 可安装时显示，localhost 开发环境常显 */}
+          {showInstallBtn && (
+            <button
+              onClick={handleInstall}
+              className="p-2 rounded-xl hover:bg-warm-orange/10 transition-colors text-warm-orange shrink-0"
+              title="安装到桌面"
+            >
+              {/* 手绘风格安装图标：笔记本 + 向下箭头 */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="3" width="16" height="18" rx="3" />
+                <path d="M8 8h8M8 12h6" />
+                <path d="M12 16v5M9 19l3 3 3-3" />
+              </svg>
+            </button>
+          )}
 
           {/* 弹窗 */}
           <DataTipModal open={showDataTip} onClose={() => setShowDataTip(false)} />

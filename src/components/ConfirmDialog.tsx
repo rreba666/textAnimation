@@ -100,12 +100,15 @@ export default function ConfirmDialog() {
 
         {/* 按钮 */}
         <div className="flex gap-3">
-          <button
-            onClick={() => close(false)}
-            className="flex-1 py-2.5 text-sm rounded-xl transition-colors hover:bg-notebook-bg dark:hover:bg-white/5"
-            style={{ color: 'rgb(var(--text-secondary))', border: '1px solid rgb(var(--border-light))' }}>
-            {state.cancelText || '取消'}
-          </button>
+          {/* 取消按钮：cancelText 为空字符串时隐藏 */}
+          {state.cancelText !== '' && (
+            <button
+              onClick={() => close(false)}
+              className="flex-1 py-2.5 text-sm rounded-xl transition-colors hover:bg-notebook-bg dark:hover:bg-white/5"
+              style={{ color: 'rgb(var(--text-secondary))', border: '1px solid rgb(var(--border-light))' }}>
+              {state.cancelText || '取消'}
+            </button>
+          )}
           <button
             onClick={() => close(true)}
             className="flex-1 py-2.5 text-sm font-medium rounded-xl transition-opacity hover:opacity-90 text-white"
