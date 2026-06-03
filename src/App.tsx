@@ -67,7 +67,7 @@ function SortableCard({ id, children, className }: { id: string; children: React
       ref={setNodeRef}
       style={style}
       data-card-id={id}
-      className={`relative group/card ${className}`}
+      className={`relative group/card card-item ${className}`}
     >
       {/* 拖拽手柄：顶部居中 pill，hover 显示 */}
       <div
@@ -180,9 +180,14 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  // 卡片依次淡入 + 上浮（骨架屏消失后）
   useEffect(() => {
     if (phase === 'content' && contentRef.current) {
-      gsap.fromTo(contentRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' })
+      const cards = contentRef.current.querySelectorAll('.card-item')
+      gsap.fromTo(cards,
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: 'back.out(1.2)' }
+      )
     }
   }, [phase])
 

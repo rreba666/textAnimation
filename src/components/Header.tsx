@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
-  LayoutGrid, Palette, Database,
+  LayoutGrid, Palette, Database, HelpCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -258,6 +258,15 @@ export default function Header() {
               <MapPin size={14} /><span>{weatherData?.city || weatherCity}</span>
             </button>
           )}
+
+          {/* 帮助（重新打开欢迎弹窗） */}
+          <button
+            onClick={() => setShowDataTip(true)}
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            title="帮助与快捷键"
+          >
+            <HelpCircle size={18} />
+          </button>
 
           {/* 数据备份提醒 */}
           <button

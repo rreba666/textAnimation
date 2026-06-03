@@ -5,6 +5,7 @@ import { BarChart3, CheckCircle2, Flame, FileText } from 'lucide-react'
 import { startOfWeek, endOfWeek, format, isWithinInterval } from 'date-fns'
 import { useDashboardStore } from '../store/useDashboardStore'
 import WeeklyReport from './WeeklyReport'
+import AnimatedNumber from './AnimatedNumber'
 
 /** 右上角图表 SVG 图标 —— 手绘风格迷你折线 */
 function MiniChartIcon() {
@@ -75,7 +76,7 @@ export default function WeekStats() {
         {items.map(({ v, l, Icon, c }) => (
           <div key={l} className="flex flex-col items-center justify-center p-3 rounded-2xl bg-notebook-bg/60">
             <Icon size={16} className={`${c} mb-1`} />
-            <span className={`text-2xl font-bold ${c} tabular-nums`}>{v}</span>
+            <AnimatedNumber value={v} className={`text-2xl font-bold ${c} tabular-nums`} />
             <span className="text-xs text-text-secondary mt-0.5">{l}</span>
           </div>
         ))}

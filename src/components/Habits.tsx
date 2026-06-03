@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Toolti
 import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
 import HeatmapModal from './HeatmapModal'
+import AnimatedNumber from './AnimatedNumber'
 
 const ICON_OPTIONS = [
   { name: 'Droplets', label: '喝水' },
@@ -117,7 +118,7 @@ export default function Habits() {
         <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-warm-orange/8 rounded-xl text-sm">
           <Flame size={16} className="text-warm-orange" />
           <span className="text-text-primary">
-            最高连续打卡 <span className="font-semibold text-warm-orange">{bestStreak}</span> 天
+            最高连续打卡 <AnimatedNumber value={bestStreak} className="font-semibold text-warm-orange" /> 天
           </span>
         </div>
       )}

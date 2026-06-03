@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Timer, Play, Pause, RotateCcw, Bell } from 'lucide-react'
+import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
 
 const PRESETS = [{ label: '25 分钟', m: 25 }, { label: '15 分钟', m: 15 }, { label: '5 分钟', m: 5 }]
@@ -37,6 +38,8 @@ export default function PomodoroTimer() {
   const [running, setRunning] = useState(false) // 实际运行状态，恢复时重新计算
   const [done, setDone] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval>>()
+  const timeDisplayRef = useRef<HTMLSpanElement>(null)
+  const pulseRef = useRef<gsap.core.Tween>()
 
   // 页面加载时：如果之前正在运行，扣除已流逝时间
   useEffect(() => {
@@ -76,6 +79,22 @@ export default function PomodoroTimer() {
     return clear
   }, [running, clear, preset, setPomodoroState])
 
+  // 剩余 ≤ 10 秒时数字变红脉冲
+  useEffect(() => {
+    const el = timeDisplayRef.current
+    if (!el) return
+    if (running && timeLeft <= 10 && timeLeft > 0) {
+      pulseRef.current = gsap.fromTo(el,
+        { scale: 1, color: el.style.color || 'rgb(var(--text-primary))' },
+        { scale: 1.08, color: '#e05555', duration: 0.4, ease: 'power2.inOut', yoyo: true, repeat: -1 }
+      )
+    } else {
+      // 归零或暂停时重置
+      if (pulseRef.current) { pulseRef.current.kill(); pulseRef.current = undefined }
+    }
+    return () => { if (pulseRef.current) { pulseRef.current.kill(); pulseRef.current = undefined } }
+  }, [running, timeLeft])
+
   // 保存状态到 store（每 5 秒 + 状态变化时）
   useEffect(() => {
     if (!running) return
@@ -103,7 +122,7 @@ export default function PomodoroTimer() {
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgb(var(--accent-green))" strokeWidth="6" strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 42} strokeDashoffset={2 * Math.PI * 42 * (1 - prog)} className="transition-[stroke-dashoffset] duration-1000 ease-linear" />
           </svg>
-          <span className={`font-mono text-3xl font-bold tabular-nums ${done ? 'text-warm-orange' : 'text-text-primary'}`}>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+          <span ref={timeDisplayRef} className={`font-mono text-3xl font-bold tabular-nums ${done ? 'text-warm-orange' : timeLeft <= 10 && running ? '' : 'text-text-primary'}`} style={timeLeft <= 10 && running ? { color: '#e05555' } : undefined}>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
         </div>
       </div>
       <div className="flex items-center justify-center gap-3 mb-4">

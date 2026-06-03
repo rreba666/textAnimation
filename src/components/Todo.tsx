@@ -15,6 +15,7 @@ import { SortableContext, useSortable, rectSortingStrategy } from '@dnd-kit/sort
 import { useDashboardStore } from '../store/useDashboardStore'
 import { showToast } from './Toast'
 import MonthlyTrend from './MonthlyTrend'
+import AnimatedNumber from './AnimatedNumber'
 import type { FilterType, Todo as TodoType } from '../types'
 
 const FILTER_TABS: { key: FilterType; label: string }[] = [
@@ -300,7 +301,7 @@ export default function Todo() {
       {todos.length > 0 && (
         <div className="mb-3">
           <div className="flex items-center justify-between text-xs text-text-secondary mb-1.5">
-            <span>已完成 {stats.done}/{stats.total} 项</span>
+            <span>已完成 <AnimatedNumber value={stats.done} />/<AnimatedNumber value={stats.total} /> 项</span>
             <span className="font-medium text-warm-green">{stats.percent}%</span>
           </div>
           <div className="h-1.5 bg-[rgb(var(--check-undone))] rounded-full overflow-hidden">

@@ -106,6 +106,7 @@ src/
     ├── Toast.tsx               # 手帐风格 Toast（GSAP 滑入/淡出 + 撤销按钮）
     ├── Skeleton.tsx            # 骨架屏（GSAP 流光 + 7 卡片占位）
     ├── ConfirmDialog.tsx       # 自定义确认弹窗（函数式调用）
+    ├── AnimatedNumber.tsx      # 数字滚动动画（GSAP）
     └── ErrorBoundary.tsx       # 渲染错误兜底
 ```
 
