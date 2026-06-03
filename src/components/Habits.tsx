@@ -148,7 +148,7 @@ export default function Habits() {
 
       {/* 周视图 */}
       {viewMode === 'week' && (
-        <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1">
+        <div className="max-h-[320px] overflow-y-auto custom-scrollbar -mx-1 px-1">
           {habits.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-text-light">
               <CheckCircle2 size={40} className="opacity-30 mb-2" />
@@ -226,7 +226,7 @@ export default function Habits() {
           </div>
 
           {chartData.length > 0 && chartHabitId ? (
-            <div className="flex-1 min-h-[160px]">
+            <div className="flex-1 min-h-[160px] max-h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border-light))" />
