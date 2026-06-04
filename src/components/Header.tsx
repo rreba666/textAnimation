@@ -185,7 +185,7 @@ export default function Header() {
           <h1 className="text-lg sm:text-xl font-bold text-text-primary tracking-wide whitespace-nowrap flex items-center gap-2">
             <Greeting />
             <span className="hidden sm:inline text-text-light font-normal">|</span>
-            <span className="hidden sm:inline">儿戏的日常手记</span>
+            <span className="hidden sm:inline">RE:序章</span>
           </h1>
         </div>
 

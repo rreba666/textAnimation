@@ -1,4 +1,4 @@
-// 儿戏的日常手记 - Service Worker（PWA 离线缓存）
+// RE:序章 - Service Worker（PWA 离线缓存）
 // 缓存策略：App Shell 优先缓存，数据走网络
 
 const CACHE_NAME = 'dashboard-v1.0.0'

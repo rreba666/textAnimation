@@ -1,4 +1,4 @@
-// Zustand 全局状态管理 —— 儿戏的日常手记
+// Zustand 全局状态管理 —— RE:序章
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'

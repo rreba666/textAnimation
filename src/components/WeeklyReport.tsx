@@ -194,7 +194,7 @@ export default function WeeklyReport({ open, onClose }: Props) {
       '> 每一天都是新的开始，继续加油！',
       '',
       `---`,
-      `*由「儿戏的日常手记」自动生成*`,
+      `*由「RE:序章」自动生成*`,
     ]
 
     const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' })

@@ -1,4 +1,4 @@
-# 儿戏的日常手记
+# RE:序章
 
 个人仪表盘应用，涵盖待办、习惯打卡、Markdown 笔记、番茄钟等 15 个功能模块。纯前端架构，数据通过 Zustand persist 自动同步到 localStorage。
 
