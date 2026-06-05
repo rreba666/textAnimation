@@ -1,6 +1,7 @@
 // 待办事项卡片 —— 含进度统计 + dnd-kit 拖拽排序
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { ClipboardList, Plus, Trash2, Check, X, GripVertical, Bell, BellRing } from 'lucide-react'
 import gsap from 'gsap'
 import {
@@ -130,7 +131,18 @@ function SortableItem({
           {!todo.completed && (
             <div className="relative">
               <button
-                onClick={onReminderClick}
+                onClick={(e) => {
+                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                  onReminderClick()
+                  // 延迟一帧等 React 渲染 portal 后再定位
+                  requestAnimationFrame(() => {
+                    const popup = document.getElementById('reminder-popup-portal')
+                    if (popup) {
+                      popup.style.left = r.left + 'px'
+                      popup.style.top = (r.bottom + 4) + 'px'
+                    }
+                  })
+                }}
                 className={`p-1 rounded-lg transition-all opacity-0 group-hover:opacity-100 ${
                   todo.reminderAt ? 'text-warm-orange hover:bg-warm-orange/10' : 'text-text-light hover:text-warm-orange hover:bg-warm-orange/10'
                 }`}
@@ -138,17 +150,6 @@ function SortableItem({
               >
                 {todo.reminderAt ? <BellRing size={14} /> : <Bell size={14} />}
               </button>
-              {reminderId === todo.id && (
-                <div className="absolute right-0 top-full mt-1 p-2 rounded-xl border shadow-lg z-20 flex items-center gap-1.5 bg-white dark:bg-[rgb(var(--bg-card))]"
-                  style={{ borderColor: 'rgb(var(--border-light))' }}
-                  onClick={(e) => e.stopPropagation()}>
-                  <input type="time" value={reminderTime} onChange={(e) => onReminderTimeChange(e.target.value)}
-                    className="w-24 px-2 py-1 text-xs border rounded-lg outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary"
-                    style={{ borderColor: 'rgb(var(--border-light))' }} />
-                  <button onClick={onReminderConfirm} className="px-2 py-1 text-xs bg-warm-orange text-white rounded-lg hover:opacity-90">确定</button>
-                  <button onClick={onReminderCancel} className="p-1 text-text-light hover:text-red-400 rounded"><X size={12} /></button>
-                </div>
-              )}
             </div>
           )}
           {/* 删除 */}
@@ -355,6 +356,26 @@ export default function Todo() {
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* 提醒时间选择器 Portal（脱离滚动容器，失焦自动关闭） */}
+      {reminderId && createPortal(
+        <div className="fixed inset-0 z-[79]" onClick={() => setReminderId(null)} />,
+        document.body
+      )}
+      {reminderId && createPortal(
+        <div id="reminder-popup-portal" className="fixed p-2 rounded-xl border shadow-lg z-[80] flex items-center gap-1.5 bg-white dark:bg-[rgb(var(--bg-card))]"
+          style={{ borderColor: 'rgb(var(--border-light))' }}
+          onClick={(e) => e.stopPropagation()}>
+          <input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)}
+            className="w-24 px-2 py-1 text-xs border rounded-lg outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary"
+            style={{ borderColor: 'rgb(var(--border-light))' }} />
+          <button onClick={() => { setTodoReminder(reminderId, reminderTime || null); setReminderId(null) }}
+            className="px-2 py-1 text-xs bg-warm-orange text-white rounded-lg hover:opacity-90">确定</button>
+          <button onClick={() => { setTodoReminder(reminderId, null); setReminderId(null) }}
+            className="p-1 text-text-light hover:text-red-400 rounded"><X size={12} /></button>
+        </div>,
+        document.body
+      )}
 
       <MonthlyTrend open={showTrend} onClose={() => setShowTrend(false)} />
     </div>

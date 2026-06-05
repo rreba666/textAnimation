@@ -87,7 +87,7 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => {
           const next = s.theme === 'light' ? 'dark' : 'light'
           document.documentElement.setAttribute('data-theme', next)
-          return { theme: next }
+          return { theme: next, background: next === 'dark' ? { type: 'paper' } : s.background }
         })
       },
 

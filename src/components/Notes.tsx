@@ -99,10 +99,10 @@ export default function Notes() {
         {/* 左侧：笔记列表 */}
         <div className="w-32 sm:w-44 shrink-0 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
           {notes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-text-light">
+            <button onClick={addNote} className="flex flex-col items-center justify-center py-8 text-text-light hover:text-warm-orange transition-colors w-full">
               <FileText size={28} className="mb-1 opacity-30" />
               <span className="text-xs">写下今天的灵感吧</span>
-            </div>
+            </button>
           ) : (
             notes.map((note) => (
               <button key={note.id} onClick={() => selectNote(note.id)}

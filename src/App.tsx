@@ -25,6 +25,8 @@ import { CSS } from '@dnd-kit/utilities'
 import { useDashboardStore } from './store/useDashboardStore'
 import { useTodoReminder } from './hooks/useTodoReminder'
 import { useHabitReminder } from './hooks/useHabitReminder'
+import { checkAchievements } from './components/AchievementsModal'
+import LightSpotBackground from './components/LightSpotBackground'
 import DashboardSkeleton from './components/Skeleton'
 import Header from './components/Header'
 import CardMenu from './components/CardMenu'
@@ -52,8 +54,24 @@ const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: stri
 }
 
 // ---- 可排序卡片包装器 ----
-function SortableCard({ id, children, className }: { id: string; children: React.ReactNode; className: string }) {
+// 图钉颜色变体：清新多彩，降低饱和度不突兀
+const PIN_COLORS = [
+  ['#e8c8c0', '#d4a5a5', '#c48888'], // 暖粉
+  ['#c8d8e0', '#a5c0d4', '#88a8c4'], // 淡蓝
+  ['#d0d8c8', '#b0c0a0', '#90a880'], // 浅绿
+  ['#e0d8c8', '#d0c0a0', '#c0a880'], // 米黄
+  ['#d8d0e0', '#c0b0d0', '#a890c0'], // 淡紫
+  ['#e0d4c8', '#d4c0a8', '#c8ac90'], // 杏色
+]
+
+function SortableCard({ id, children, className, isAnyDragging }: { id: string; children: React.ReactNode; className: string; isAnyDragging: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+  // 根据卡片 ID 哈希取图钉颜色
+  const pinColor = useMemo(() => {
+    let hash = 0; for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0
+    return PIN_COLORS[Math.abs(hash) % PIN_COLORS.length]
+  }, [id])
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -81,8 +99,38 @@ function SortableCard({ id, children, className }: { id: string; children: React
         />
       </div>
 
-      {/* 卡片菜单 */}
-      <div className="absolute top-3 right-3 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
+      {/* 图钉装饰：左右各一个，拖拽时变空心圆孔，hover 微抬微旋 */}
+      <div className="absolute top-1.5 z-10 group-hover/card:-translate-y-[2px] group-hover/card:rotate-[-8deg]"
+        style={{ left: '18%', transition: 'transform 0.3s ease' }}>
+        <div className={`transition-all duration-300 ${isAnyDragging ? 'opacity-70 scale-75' : 'opacity-90 scale-100'}`}>
+          {isAnyDragging ? (
+            <svg width="9" height="9" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="none" stroke="rgb(var(--border-light))" strokeWidth="1" strokeDasharray="2 1.5"/></svg>
+          ) : (
+            <div className="w-[9px] h-[9px] rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.15),0_0.5px_1px_rgba(0,0,0,0.06)] relative"
+              style={{ background: `radial-gradient(circle at 35% 30%, ${pinColor[0]}, ${pinColor[1]} 55%, ${pinColor[2]} 100%)` }}>
+              <div className="absolute w-[4px] h-[4px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ background: `radial-gradient(circle, ${pinColor[2]}, ${pinColor[1]} 50%, transparent 100%)` }} />
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="absolute top-1.5 z-10 group-hover/card:-translate-y-[2px] group-hover/card:rotate-[8deg]"
+        style={{ right: '18%', transition: 'transform 0.3s ease' }}>
+        <div className={`transition-all duration-300 ${isAnyDragging ? 'opacity-70 scale-75' : 'opacity-90 scale-100'}`}>
+          {isAnyDragging ? (
+            <svg width="9" height="9" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="none" stroke="rgb(var(--border-light))" strokeWidth="1" strokeDasharray="2 1.5"/></svg>
+          ) : (
+            <div className="w-[9px] h-[9px] rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.15),0_0.5px_1px_rgba(0,0,0,0.06)] relative"
+              style={{ background: `radial-gradient(circle at 35% 30%, ${pinColor[0]}, ${pinColor[1]} 55%, ${pinColor[2]} 100%)` }}>
+              <div className="absolute w-[4px] h-[4px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ background: `radial-gradient(circle, ${pinColor[2]}, ${pinColor[1]} 50%, transparent 100%)` }} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 卡片菜单：置于卡片顶部外侧，避免遮挡内容按钮 */}
+      <div className="absolute -top-1 right-2 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity">
         <CardMenu cardId={id} />
       </div>
 
@@ -164,11 +212,22 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  // ---- 动态背景 ----
+  // ---- 动态背景（自定义预设仅在亮色模式生效，暗色统一纸纹） ----
   const bgStyle = useMemo(() => {
+    if (theme === 'dark') return undefined  // 暗色：纸纹跟随 CSS 变量
     if (!background || background.type === 'paper') return undefined
     return { background: bgPresets[background.type] || bgPresets.paper }
-  }, [background])
+  }, [background, theme])
+
+  // ---- 根据时间微调卡片底色（时间段 data 属性） ----
+  useEffect(() => {
+    const hour = new Date().getHours()
+    let period = 'morning'     // 5-11
+    if (hour >= 11 && hour < 13) period = 'noon'
+    else if (hour >= 13 && hour < 18) period = 'afternoon'
+    else if (hour >= 18 || hour < 5) period = 'night'
+    document.documentElement.setAttribute('data-time-period', period)
+  }, [])
 
   // ---- 骨架屏 ----
   useEffect(() => {
@@ -231,11 +290,19 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  // ---- 成就检测（首次加载 + 每 30 秒） ----
+  useEffect(() => {
+    checkAchievements()
+    const timer = setInterval(checkAchievements, 30_000)
+    return () => clearInterval(timer)
+  }, [])
+
   // ---- 首次访问数据提示 ----
   useEffect(() => {
     const KEY = 'hasSeenDataTip'
     if (localStorage.getItem(KEY)) return
-    const timer = setTimeout(() => { setShowAutoTip(true); localStorage.setItem(KEY, '1') }, 1500)
+    // 等骨架屏 + 卡片入场动画完成后再弹出
+    const timer = setTimeout(() => { setShowAutoTip(true); localStorage.setItem(KEY, '1') }, 2000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -248,7 +315,9 @@ export default function App() {
 
   return (
     <div id="app-root" className="min-h-screen">
-      <div className="dot-pattern min-h-screen" style={bgStyle}>
+      <div className="dot-pattern min-h-screen relative" style={bgStyle}>
+        {/* 光斑漂移 + 波动渐变背景 */}
+        <LightSpotBackground />
         {phase === 'skeleton' && (
           <div ref={skeletonRef}><DashboardSkeleton /></div>
         )}
@@ -257,7 +326,7 @@ export default function App() {
           <div ref={contentRef}>
             <Header />
 
-            <main className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-24">
+            <main className="main-wrapper max-w-[1200px] mx-auto px-4 sm:px-6 pb-24">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -270,7 +339,7 @@ export default function App() {
                       const card = CARD_REGISTRY[id]
                       if (!card) return null
                       return (
-                        <SortableCard key={id} id={id} className={card.className}>
+                        <SortableCard key={id} id={id} className={card.className} isAnyDragging={!!activeId}>
                           <card.Comp />
                         </SortableCard>
                       )

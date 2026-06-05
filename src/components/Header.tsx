@@ -6,11 +6,11 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
-  LayoutGrid, Palette, Database, HelpCircle,
+  LayoutGrid, Palette, HelpCircle, Award,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -22,6 +22,8 @@ import Countdown from './Countdown'
 import ManageCardsModal from './ManageCardsModal'
 import BackgroundPicker from './BackgroundPicker'
 import DataTipModal from './DataTipModal'
+import AchievementsModal from './AchievementsModal'
+import gsap from 'gsap'
 import { showConfirm } from './ConfirmDialog'
 import type { WeatherData, ForecastDay } from '../types'
 
@@ -50,6 +52,52 @@ function WeatherIcon({ code, size }: { code: number; size: number }) {
   return <CloudLightning {...props} />
 }
 
+// GSAP 天气微动画：根据天气类型播放循环效果
+function AnimatedWeatherIcon({ code, size }: { code: number; size: number }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const tweenRef = useRef<gsap.core.Tween>()
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    // 先杀旧动画
+    if (tweenRef.current) { tweenRef.current.kill(); tweenRef.current = undefined }
+
+    // 根据天气选择动画
+    if (code === 0) {
+      // 晴天：无限旋转 + 脉冲光晕
+      const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.5 })
+      tl.to(el, { rotation: 360, duration: 8, ease: 'none' }, 0)
+      tl.to(el, { scale: 1.15, duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0)
+    } else if (code <= 3) {
+      // 多云：左右缓动
+      tweenRef.current = gsap.to(el, { x: 3, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+    } else if (code <= 48) {
+      // 雾：透明度闪烁
+      tweenRef.current = gsap.to(el, { opacity: 0.55, duration: 2.5, ease: 'sine.inOut', yoyo: true, repeat: -1 })
+    } else if (code >= 51 && code <= 86) {
+      // 雨：上下跳动 + 透明度闪烁
+      const tl = gsap.timeline({ repeat: -1 })
+      tl.to(el, { y: -3, duration: 0.4, ease: 'power2.out', yoyo: true, repeat: 1 }, 0)
+      tl.to(el, { opacity: 0.7, duration: 0.5, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0.8)
+    } else if (code <= 77) {
+      // 雪：缓慢旋转 + 左右摆动
+      const tl = gsap.timeline({ repeat: -1 })
+      tl.to(el, { rotation: 15, duration: 4, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0)
+      tl.to(el, { x: 2, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0)
+    }
+
+    return () => { if (tweenRef.current) tweenRef.current.kill() }
+  }, [code])
+
+  return (
+    <span ref={ref} className="inline-flex">
+      <WeatherIcon code={code} size={size} />
+    </span>
+  )
+}
+
 export default function Header() {
   const [now, setNow] = useState(new Date())
   const [cityInput, setCityInput] = useState('')
@@ -65,6 +113,7 @@ export default function Header() {
   const [showCardManager, setShowCardManager] = useState(false)
   const [showBgPicker, setShowBgPicker] = useState(false)
   const [showDataTip, setShowDataTip] = useState(false)
+  const [showAchievements, setShowAchievements] = useState(false)
 
   // PWA 安装：监听 beforeinstallprompt（线上 HTTPS 触发）+ 开发环境常显
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
@@ -209,7 +258,7 @@ export default function Header() {
           {/* 天气 */}
           {weatherData && !weatherError ? (
             <div className="flex items-center gap-2 bg-notebook-bg/60 rounded-xl px-3 py-1.5">
-              <WeatherIcon code={weatherData.wmoCode} size={36} />
+              <AnimatedWeatherIcon code={weatherData.wmoCode} size={36} />
               <div>
                 <div className="flex items-center gap-1">
                   <span className="text-lg font-semibold text-text-primary">{weatherData.temp}°C</span>
@@ -224,7 +273,7 @@ export default function Header() {
                 {weatherData.forecast.slice(0, 3).map((day) => (
                   <div key={day.date} className="text-center px-1">
                     <div className="text-xs text-text-light">{format(new Date(day.date), 'M/d')}</div>
-                    <WeatherIcon code={day.wmoCode} size={22} />
+                    <AnimatedWeatherIcon code={day.wmoCode} size={22} />
                     <div className="text-xs text-text-secondary">{day.tempMin}°/{day.tempMax}°</div>
                   </div>
                 ))}
@@ -259,6 +308,15 @@ export default function Header() {
             </button>
           )}
 
+          {/* 成就徽章 */}
+          <button
+            onClick={() => setShowAchievements(true)}
+            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
+            title="成就徽章"
+          >
+            <Award size={18} />
+          </button>
+
           {/* 帮助（重新打开欢迎弹窗） */}
           <button
             onClick={() => setShowDataTip(true)}
@@ -266,15 +324,6 @@ export default function Header() {
             title="帮助与快捷键"
           >
             <HelpCircle size={18} />
-          </button>
-
-          {/* 数据备份提醒 */}
-          <button
-            onClick={() => setShowDataTip(true)}
-            className="p-2 rounded-xl hover:bg-notebook-bg dark:hover:bg-white/8 transition-colors text-text-secondary hover:text-warm-orange shrink-0"
-            title="数据备份提醒"
-          >
-            <Database size={18} />
           </button>
 
           {/* 管理卡片 */}
@@ -321,6 +370,7 @@ export default function Header() {
           )}
 
           {/* 弹窗 */}
+          <AchievementsModal open={showAchievements} onClose={() => setShowAchievements(false)} />
           <DataTipModal open={showDataTip} onClose={() => setShowDataTip(false)} />
           <ManageCardsModal open={showCardManager} onClose={() => setShowCardManager(false)} />
           <BackgroundPicker open={showBgPicker} onClose={() => setShowBgPicker(false)} />
