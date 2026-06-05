@@ -324,6 +324,13 @@ export default function App() {
 
         {phase === 'content' && (
           <div ref={contentRef}>
+            {/* 装订孔装饰 */}
+            <div className="page-binding hidden sm:flex">
+              <div className="hole" /><div className="hole" /><div className="hole" /><div className="hole" />
+            </div>
+            {/* 和纸胶带 */}
+            <div className="washi-tape" />
+
             <Header />
 
             <main className="main-wrapper max-w-[1200px] mx-auto px-4 sm:px-6 pb-24">
