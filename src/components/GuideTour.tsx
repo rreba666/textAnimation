@@ -7,6 +7,11 @@ import gsap from 'gsap'
 
 const STORAGE_KEY = 're_xuzhang_has_seen_guide'
 
+/** 检查是否应该显示引导 */
+export function shouldShowGuide(): boolean {
+  return localStorage.getItem(STORAGE_KEY) !== '1'
+}
+
 interface GuideStep {
   /** CSS 选择器，用于定位目标元素 */
   selector: string
@@ -55,11 +60,6 @@ const STEPS: GuideStep[] = [
     placement: 'left',
   },
 ]
-
-/** 检查是否应该显示引导 */
-export function shouldShowGuide(): boolean {
-  return localStorage.getItem(STORAGE_KEY) !== '1'
-}
 
 /** 标记引导已看完 */
 function markGuideSeen() {

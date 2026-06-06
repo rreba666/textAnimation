@@ -2,22 +2,23 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { Award } from 'lucide-react'
 import gsap from 'gsap'
 
 /** 通知数据结构 */
 export interface AchievementNotifyData {
   id: string
   name: string
-  icon: React.ReactNode
+  iconName?: string
   rarity: 'normal' | 'rare' | 'epic' | 'legendary'
 }
 
-// 稀有度对应颜色
-const RARITY_GLOW: Record<string, string> = {
-  normal: 'rgb(var(--border-light))',
-  rare: 'rgb(147 180 210)',
-  epic: 'rgb(184 160 212)',
-  legendary: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #9b4dca, #5b6ef5, #38bdf8)',
+// 稀有度图标颜色
+const RARITY_ICON_COLOR: Record<string, string> = {
+  normal: 'rgb(var(--accent-primary))',
+  rare: '#7ba0c7',
+  epic: '#9b7ec4',
+  legendary: '#d4a540',
 }
 
 // ---- 模块级队列与守卫 ----
@@ -157,7 +158,9 @@ export default function AchievementNotify() {
               transform: 'scale(1.4)',
             }}
           />
-          <div className="relative">{current.icon}</div>
+          <div className="relative">
+            <Award size={32} style={{ color: RARITY_ICON_COLOR[current.rarity] || RARITY_ICON_COLOR.normal }} />
+          </div>
         </div>
 
         {/* 右侧文字 */}

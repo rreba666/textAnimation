@@ -2,36 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Award } from 'lucide-react'
+import { X } from 'lucide-react'
 import { format } from 'date-fns'
 import gsap from 'gsap'
-import { useDashboardStore } from '../store/useDashboardStore'
-import { showAchievementNotify } from './AchievementNotify'
+import { BADGES, isEarned, getEarnedTime, newlyEarnedInSession, type BadgeData, type Rarity } from '../data/achievements'
 
 interface Props {
   open: boolean
   onClose: () => void
-}
-
-type Rarity = 'normal' | 'rare' | 'epic' | 'legendary'
-
-interface Badge {
-  id: string
-  name: string
-  cond: string
-  desc: string
-  target: number
-  rarity: Rarity
-  current: () => number
-  icon: React.ReactNode
-}
-
-// 稀有度对应的边框颜色
-const RARITY_COLORS: Record<Rarity, string> = {
-  normal: 'transparent',
-  rare: '147 180 210',    // 淡蓝
-  epic: '184 160 212',     // 淡紫
-  legendary: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888, #9b4dca, #5b6ef5, #38bdf8)',
 }
 
 // ---- 波浪分割线 SVG ----
@@ -41,6 +19,20 @@ function WaveDivider() {
       <path d="M0 7 Q20 1 40 7 Q60 13 80 7 Q100 1 120 7 Q140 13 160 7 Q180 1 200 7 Q220 13 240 7 Q260 1 280 7 Q300 13 320 7 Q340 1 360 7 Q380 13 400 7" stroke="rgb(var(--accent-primary))" strokeWidth="1.2" fill="none" strokeLinecap="round" />
     </svg>
   )
+}
+
+// 图标名称 → SVG 组件映射
+const ICON_MAP: Record<string, React.ReactNode> = {
+  streak: <BadgeStreak />,
+  todo: <BadgeTodo />,
+  link: <BadgeLink />,
+  note: <BadgeNote />,
+  morning: <BadgeMorning />,
+  latenight: <BadgeLateNight />,
+  passing: <BadgePassing />,
+  empty: <BadgeEmpty />,
+  lookback: <BadgeLookBack />,
+  master: <BadgeMaster />,
 }
 
 // ---- SVG 徽章图标 ----
@@ -162,133 +154,6 @@ function PinIcon() {
     </svg>
   )
 }
-
-// 辅助函数：计算日期数组中最长连续天数
-function getLongestStreak(dates: string[]): number {
-  if (dates.length === 0) return 0
-  const sorted = [...new Set(dates)].sort()
-  let max = 1, cur = 1
-  for (let i = 1; i < sorted.length; i++) {
-    const diff = (new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) / 86400000
-    if (Math.round(diff) === 1) { cur++; if (cur > max) max = cur }
-    else { cur = 1 }
-  }
-  return max
-}
-
-// 辅助函数：计算连续"只完成 1 个待办"的天数
-function getConsecutiveSingleTodoDays(): number {
-  const { todos } = useDashboardStore.getState()
-  const byDate: Record<string, number> = {}
-  for (const t of todos) {
-    if (!t.completed || !t.completedAt) continue
-    const d = t.completedAt.slice(0, 10)
-    byDate[d] = (byDate[d] || 0) + 1
-  }
-  const dates = Object.entries(byDate)
-    .filter(([, c]) => c === 1)
-    .map(([d]) => d)
-    .sort()
-  if (dates.length === 0) return 0
-  let max = 1, cur = 1
-  for (let i = 1; i < dates.length; i++) {
-    const diff = (new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime()) / 86400000
-    if (Math.round(diff) === 1) { cur++; if (cur > max) max = cur }
-    else { cur = 1 }
-  }
-  return max
-}
-
-const BADGES: Badge[] = [
-  {
-    id: 'streak7', name: '第七个早安', cond: '连续打卡 7 天', desc: '一周的晨光，你都接住了。',
-    target: 7, rarity: 'rare',
-    current: () => { const { habits, getHabitStreak } = useDashboardStore.getState(); return habits.length > 0 ? Math.max(...habits.map((h) => getHabitStreak(h.id))) : 0 },
-    icon: <BadgeStreak />,
-  },
-  {
-    id: 'todos100', name: '一百件小事', cond: '完成 100 个待办', desc: '大事轮不到我，但小事被我做完了。',
-    target: 100, rarity: 'epic',
-    current: () => useDashboardStore.getState().todos.filter((t) => t.completed).length,
-    icon: <BadgeTodo />,
-  },
-  {
-    id: 'links10', name: '拾贝', cond: '新增 10 个链接', desc: '小小的收集，不为什么，只是喜欢。',
-    target: 10, rarity: 'normal',
-    current: () => useDashboardStore.getState().links.length,
-    icon: <BadgeLink />,
-  },
-  {
-    id: 'notes20', name: '笔尖漫步', cond: '新增 20 篇笔记', desc: '字迹歪歪扭扭也没关系，你走过的路，笔都记得。',
-    target: 20, rarity: 'rare',
-    current: () => useDashboardStore.getState().notes.length,
-    icon: <BadgeNote />,
-  },
-  {
-    id: 'morning5', name: '晨间诗人', cond: '连续 5 天在早上 8 点前打卡', desc: '你见过早晨的温柔光线。',
-    target: 5, rarity: 'rare',
-    current: () => getLongestStreak(useDashboardStore.getState().earlyCheckinDates),
-    icon: <BadgeMorning />,
-  },
-  {
-    id: 'latenight10', name: '深夜抄经人', cond: '累计 10 次在 23 点后记录', desc: '把心事写进夜里。',
-    target: 10, rarity: 'rare',
-    current: () => useDashboardStore.getState().lateNightNoteDates.length,
-    icon: <BadgeLateNight />,
-  },
-  {
-    id: 'passing3', name: '恰好路过', cond: '连续 3 天只完成 1 个待办', desc: '今天不想努力，也没关系。',
-    target: 3, rarity: 'normal',
-    current: () => getConsecutiveSingleTodoDays(),
-    icon: <BadgePassing />,
-  },
-  {
-    id: 'skip1', name: '空页允许证', cond: '有一天没有任何打卡', desc: '空白也是一种记录。',
-    target: 1, rarity: 'normal',
-    current: () => {
-      const { habitRecords } = useDashboardStore.getState()
-      const dates = Object.keys(habitRecords)
-      if (dates.length === 0) return 0
-      const sorted = dates.sort()
-      const start = new Date(sorted[0])
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      for (let d = new Date(start); d <= yesterday; d.setDate(d.getDate() + 1)) {
-        const key = format(d, 'yyyy-MM-dd')
-        if (!habitRecords[key] || habitRecords[key].length === 0) return 1
-      }
-      return 0
-    },
-    icon: <BadgeEmpty />,
-  },
-  {
-    id: 'lookback1', name: '回头看一眼', cond: '阅读自己 7 天前的笔记', desc: '你看，那时候的你也很认真。',
-    target: 1, rarity: 'normal',
-    current: () => useDashboardStore.getState().viewedOldNoteDates.length,
-    icon: <BadgeLookBack />,
-  },
-  {
-    id: 'master6', name: '手账小当家', cond: '同时拥有以上任意 6 个勋章', desc: '你把日子过成了一本书。',
-    target: 6, rarity: 'legendary',
-    current: () => {
-      const allIds = BADGES.filter((b) => b.id !== 'master6').map((b) => b.id)
-      return allIds.filter((id) => isEarned(id)).length
-    },
-    icon: <BadgeMaster />,
-  },
-]
-
-function isEarned(id: string) {
-  return localStorage.getItem(`achievement_${id}`) === '1'
-}
-
-// 获取勋章获得时间
-function getEarnedTime(id: string): string | null {
-  return localStorage.getItem(`achievement_${id}_time`)
-}
-
-// 模块级变量：本次会话中新获得的勋章 ID（用于打开弹窗时播放动画）
-const newlyEarnedInSession = new Set<string>()
 
 export default function AchievementsModal({ open, onClose }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -523,7 +388,7 @@ export default function AchievementsModal({ open, onClose }: Props) {
                   )}
                   {/* 图标 */}
                   <div className={earned ? '' : 'grayscale opacity-50'} style={{ filter: earned ? undefined : 'grayscale(1) opacity(0.5)' }}>
-                    {b.icon}
+                    {ICON_MAP[b.iconName]}
                   </div>
                   {/* 名称 */}
                   <div className="text-xs font-medium leading-tight"
@@ -597,20 +462,3 @@ export default function AchievementsModal({ open, onClose }: Props) {
   )
 }
 
-/** 在 App 层调用：检查是否达成新成就，弹出 Toast */
-export function checkAchievements() {
-  const earned = (id: string) => localStorage.getItem(`achievement_${id}`) === '1'
-  BADGES.forEach((b) => {
-    // 三重守卫：localStorage 已记录 | 本次会话已弹出 | 条件未达标
-    if (earned(b.id)) return
-    if (newlyEarnedInSession.has(b.id)) return
-    if (b.current() < b.target) return
-
-    // 先标记再写 localStorage，确保后续调用立刻跳过
-    newlyEarnedInSession.add(b.id)
-    localStorage.setItem(`achievement_${b.id}`, '1')
-    localStorage.setItem(`achievement_${b.id}_time`, new Date().toISOString())
-    // Steam 风格成就解锁通知
-    showAchievementNotify({ id: b.id, name: b.name, icon: b.icon, rarity: b.rarity })
-  })
-}

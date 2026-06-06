@@ -1,6 +1,6 @@
 // 根组件：骨架屏加载 → 内容淡入 → 卡片网格（dnd-kit 拖拽排序）
 
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, lazy, Suspense } from 'react'
 import gsap from 'gsap'
 import { format, subDays } from 'date-fns'
 import {
@@ -25,7 +25,8 @@ import { CSS } from '@dnd-kit/utilities'
 import { useDashboardStore } from './store/useDashboardStore'
 import { useTodoReminder } from './hooks/useTodoReminder'
 import { useHabitReminder } from './hooks/useHabitReminder'
-import { checkAchievements } from './components/AchievementsModal'
+import { checkAchievementsRaw } from './data/achievements'
+import { showAchievementNotify } from './components/AchievementNotify'
 import LightSpotBackground from './components/LightSpotBackground'
 import DashboardSkeleton from './components/Skeleton'
 import Header from './components/Header'
@@ -41,7 +42,8 @@ import EasterEgg from './components/EasterEgg'
 import ToastContainer from './components/Toast'
 import AchievementNotify from './components/AchievementNotify'
 import DataTipModal from './components/DataTipModal'
-import GuideTour, { shouldShowGuide } from './components/GuideTour'
+const GuideTour = lazy(() => import('./components/GuideTour'))
+const shouldShowGuide = () => localStorage.getItem('re_xuzhang_has_seen_guide') !== '1'
 import ConfirmDialog from './components/ConfirmDialog'
 
 // 卡片注册表
@@ -303,16 +305,21 @@ export default function App() {
   const lateNightNoteDates = useDashboardStore((s) => s.lateNightNoteDates)
   const viewedOldNoteDates = useDashboardStore((s) => s.viewedOldNoteDates)
 
+  // 成就检测：检查并弹出通知
+  const runAchievementCheck = useRef(() => {
+    const newBadges = checkAchievementsRaw()
+    newBadges.forEach((b) => showAchievementNotify({ id: b.id, name: b.name, iconName: b.iconName, rarity: b.rarity }))
+  })
+
   useEffect(() => {
     if (phase !== 'content') return
-    // store 字段变化时立即检查成就（用户操作后实时响应）
-    checkAchievements()
+    runAchievementCheck.current()
   }, [phase, todos, habitRecords, notes, links, earlyCheckinDates, lateNightNoteDates, viewedOldNoteDates])
 
   // ---- 成就定时轮询（每 30 秒兜底） ----
   useEffect(() => {
     if (phase !== 'content') return
-    const timer = setInterval(checkAchievements, 30_000)
+    const timer = setInterval(() => runAchievementCheck.current(), 30_000)
     return () => clearInterval(timer)
   }, [phase])
 
@@ -409,7 +416,7 @@ export default function App() {
             <AchievementNotify />
             <ConfirmDialog />
             <DataTipModal open={showAutoTip} onClose={() => setShowAutoTip(false)} />
-            <GuideTour open={showGuide} onClose={() => setShowGuide(false)} />
+            <Suspense fallback={null}><GuideTour open={showGuide} onClose={() => setShowGuide(false)} /></Suspense>
           </div>
         )}
       </div>

@@ -83,6 +83,8 @@ src/
 ├── types/index.ts              # Todo(含completedAt/reminderAt)/Note/Habit/LinkItem/WeatherData
 ├── utils/storage.ts            # localStorage 读写 + ID 生成
 ├── store/useDashboardStore.ts  # Zustand 全局状态 + persist + HMR 保护
+├── data/
+│   └── achievements.ts         # 勋章数据 + checkAchievementsRaw（纯数据，不含 JSX）
 ├── hooks/
 │   ├── useTodoReminder.ts      # 待办提醒定时检查
 │   └── useHabitReminder.ts     # 打卡提醒定时检查

@@ -1,4 +1,4 @@
-// 光斑漂移 + 波动渐变背景 —— 亮色阳光 / 暗色月光
+// 静态光斑 + 渐变背景 —— 亮色阳光 / 暗色月光（无持续动画，避免 Painting 开销）
 
 import { useDashboardStore } from '../store/useDashboardStore'
 
@@ -6,7 +6,6 @@ export default function LightSpotBackground() {
   const theme = useDashboardStore((s) => s.theme)
   const isDark = theme === 'dark'
 
-  // 阳光色 → 月光色
   const colors = isDark
     ? {
         wave1: 'rgba(180,200,230,0.25)',
@@ -25,70 +24,41 @@ export default function LightSpotBackground() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
-
-      {/* 底层：波动渐变 */}
+      {/* 底层：静态渐变 */}
       <div
         className="absolute inset-0"
         style={{
           background: `radial-gradient(ellipse at 50% 50%, ${colors.wave1} 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, ${colors.wave2} 0%, transparent 50%)`,
-          animation: 'wave-drift 20s ease-in-out infinite',
+          opacity: 0.75,
         }}
       />
-
-      {/* 光斑 1 */}
+      {/* 光斑 1 —— 左上 */}
       <div
         className="absolute rounded-full blur-3xl"
         style={{
           width: '300px', height: '300px',
+          top: '15%', left: '10%',
           background: `radial-gradient(circle, ${colors.spot1} 0%, transparent 70%)`,
-          animation: 'spot-drift-1 18s ease-in-out infinite',
         }}
       />
-      {/* 光斑 2 */}
+      {/* 光斑 2 —— 右下 */}
       <div
         className="absolute rounded-full blur-3xl"
         style={{
           width: '250px', height: '250px',
+          bottom: '20%', right: '15%',
           background: `radial-gradient(circle, ${colors.spot2} 0%, transparent 70%)`,
-          animation: 'spot-drift-2 22s ease-in-out infinite',
         }}
       />
-      {/* 光斑 3 */}
+      {/* 光斑 3 —— 中上 */}
       <div
         className="absolute rounded-full blur-3xl"
         style={{
           width: '200px', height: '200px',
+          top: '40%', left: '50%',
           background: `radial-gradient(circle, ${colors.spot3} 0%, transparent 70%)`,
-          animation: 'spot-drift-3 25s ease-in-out infinite',
         }}
       />
-
-      <style>{`
-        @keyframes wave-drift {
-          0%, 100% { opacity: 0.6; transform: scale(1) rotate(0deg); }
-          25%      { opacity: 0.9; transform: scale(1.05) rotate(1deg); }
-          50%      { opacity: 0.5; transform: scale(0.97) rotate(-0.5deg); }
-          75%      { opacity: 0.85; transform: scale(1.03) rotate(0.5deg); }
-        }
-        @keyframes spot-drift-1 {
-          0%   { top: -10%; left: -5%; }
-          25%  { top: 40%; left: 30%; }
-          50%  { top: 70%; left: 60%; }
-          75%  { top: 20%; left: 80%; }
-          100% { top: -10%; left: -5%; }
-        }
-        @keyframes spot-drift-2 {
-          0%   { top: 60%; left: 90%; }
-          33%  { top: 10%; left: 50%; }
-          66%  { top: 50%; left: 0%; }
-          100% { top: 60%; left: 90%; }
-        }
-        @keyframes spot-drift-3 {
-          0%   { top: 30%; left: 20%; }
-          50%  { top: 60%; left: 40%; }
-          100% { top: 30%; left: 20%; }
-        }
-      `}</style>
     </div>
   )
 }

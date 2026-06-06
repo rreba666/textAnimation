@@ -6,7 +6,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
@@ -22,7 +22,7 @@ import Countdown from './Countdown'
 import ManageCardsModal from './ManageCardsModal'
 import BackgroundPicker from './BackgroundPicker'
 import DataTipModal from './DataTipModal'
-import AchievementsModal from './AchievementsModal'
+const AchievementsModal = lazy(() => import('./AchievementsModal'))
 import gsap from 'gsap'
 import { showConfirm } from './ConfirmDialog'
 import type { WeatherData, ForecastDay } from '../types'
@@ -370,7 +370,7 @@ export default function Header() {
           )}
 
           {/* 弹窗 */}
-          <AchievementsModal open={showAchievements} onClose={() => setShowAchievements(false)} />
+          <Suspense fallback={null}><AchievementsModal open={showAchievements} onClose={() => setShowAchievements(false)} /></Suspense>
           <DataTipModal open={showDataTip} onClose={() => setShowDataTip(false)} />
           <ManageCardsModal open={showCardManager} onClose={() => setShowCardManager(false)} />
           <BackgroundPicker open={showBgPicker} onClose={() => setShowBgPicker(false)} />
