@@ -23,11 +23,12 @@ interface DashboardState {
   // --- 习惯打卡 ---
   habits: Habit[]
   habitRecords: HabitRecords
+  makeupRecords: Record<string, string[]>  // 补签记录：日期 → 习惯ID数组
   addHabit: (name: string, icon?: string) => void
   deleteHabit: (id: string) => void
   toggleHabitDay: (habitId: string, date: string) => void
   getHabitStreak: (habitId: string) => number
-  getWeekRecords: (habitId: string, weekStart: Date) => boolean[]
+  getWeekRecords: (habitId: string, weekStart: Date) => { done: boolean; makeup: boolean }[]
   getMonthData: (habitId: string, year: number, month: number) => { day: number; done: boolean }[]
 
   // --- 快捷链接 ---
@@ -154,6 +155,7 @@ export const useDashboardStore = create<DashboardState>()(
       // ===== 习惯打卡 =====
       habits: DEFAULT_HABITS,
       habitRecords: {},
+      makeupRecords: {},
 
       addHabit: (name: string, icon?: string) => {
         if (!name.trim()) return
@@ -179,10 +181,22 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => {
           const dayRecords = s.habitRecords[date] || []
           const exists = dayRecords.includes(habitId)
+          // 判断是否为补签：日期不是今天
+          const todayStr = format(new Date(), 'yyyy-MM-dd')
+          const isMakeup = date !== todayStr
+          // 补签记录单独追踪
+          const makeupDayRecords = s.makeupRecords[date] || []
+          const newMakeupRecords = { ...s.makeupRecords }
+          if (!exists && isMakeup) {
+            newMakeupRecords[date] = [...makeupDayRecords, habitId]
+          } else if (exists) {
+            // 取消打卡时同步清除补签标记
+            newMakeupRecords[date] = makeupDayRecords.filter((id) => id !== habitId)
+            if (newMakeupRecords[date].length === 0) delete newMakeupRecords[date]
+          }
           // 追踪早起打卡（早上 8 点前）—— 成就：晨间诗人
           const now = new Date()
           const isEarly = now.getHours() < 8
-          const todayStr = format(now, 'yyyy-MM-dd')
           const newEarlyDates = !exists && isEarly && !s.earlyCheckinDates.includes(todayStr)
             ? [...s.earlyCheckinDates, todayStr]
             : s.earlyCheckinDates
@@ -191,37 +205,41 @@ export const useDashboardStore = create<DashboardState>()(
               ...s.habitRecords,
               [date]: exists ? dayRecords.filter((id) => id !== habitId) : [...dayRecords, habitId],
             },
+            makeupRecords: newMakeupRecords,
             earlyCheckinDates: newEarlyDates,
           }
         })
       },
 
-      // 计算习惯连续打卡天数（从今天向前推算）
+      // 计算习惯连续打卡天数（从今天向前推算，补签不计入连续）
       getHabitStreak: (habitId: string) => {
-        const { habitRecords } = get()
+        const { habitRecords, makeupRecords } = get()
         let streak = 0
         const today = new Date()
         for (let i = 0; i < 365; i++) {
           const d = new Date(today)
           d.setDate(d.getDate() - i)
           const dateStr = format(d, 'yyyy-MM-dd')
-          if (habitRecords[dateStr]?.includes(habitId)) {
+          // 该日有打卡且不是补签，才算连续
+          if (habitRecords[dateStr]?.includes(habitId) && !makeupRecords[dateStr]?.includes(habitId)) {
             streak++
           } else if (i > 0) {
-            // 今天还没打卡不算中断
             break
           }
         }
         return streak
       },
 
-      // 获取本周打卡情况（周一到周日）
+      // 获取本周打卡情况（周一到周日），含补签标记
       getWeekRecords: (habitId: string, weekStart: Date) => {
-        const { habitRecords } = get()
+        const { habitRecords, makeupRecords } = get()
         return Array.from({ length: 7 }, (_, i) => {
           const d = new Date(weekStart)
           d.setDate(d.getDate() + i)
-          return habitRecords[format(d, 'yyyy-MM-dd')]?.includes(habitId) ?? false
+          const dateStr = format(d, 'yyyy-MM-dd')
+          const done = habitRecords[dateStr]?.includes(habitId) ?? false
+          const makeup = makeupRecords[dateStr]?.includes(habitId) ?? false
+          return { done, makeup }
         })
       },
 
@@ -389,6 +407,7 @@ export const useDashboardStore = create<DashboardState>()(
         todos: state.todos,
         habits: state.habits,
         habitRecords: state.habitRecords,
+        makeupRecords: state.makeupRecords,
         links: state.links,
         notes: state.notes,
         selectedNoteId: state.selectedNoteId,

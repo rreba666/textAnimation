@@ -183,17 +183,29 @@ export default function Habits() {
                       {streak > 0 && <Flame size={11} className="text-warm-orange shrink-0" />}
                       <span className="text-xs font-medium text-text-primary truncate">{habit.name}</span>
                     </div>
-                    {weekData.map((done, i) => {
+                    {weekData.map(({ done, makeup }, i) => {
                       const d = weekDays[i]
                       const futureDay = isFuture(d) && !isToday(d)
+                      // 补签使用不同颜色标识（琥珀色背景 + 时钟图标）
+                      const isMakeup = done && makeup
                       return (
                         <button key={i} onClick={(e) => handleToggleDay(habit.id, i, e)} disabled={futureDay}
                           className={`flex items-center justify-center justify-self-center w-7 h-7 rounded-full text-xs font-medium transition-all duration-200 ${
                             futureDay ? 'text-text-light cursor-not-allowed opacity-30' :
+                            isMakeup ? 'bg-[rgb(var(--accent-secondary))] text-white scale-100 hover:scale-110 active:scale-90' :
                             done ? 'bg-warm-green text-white scale-100 hover:scale-110 active:scale-90' :
                             'bg-[rgb(var(--check-undone))] text-text-light hover:bg-warm-pink/30 hover:text-warm-orange'
-                          }`} title={format(d, 'M月d日')}>
-                          {done ? <Heart size={11} fill="currentColor" /> : <Star size={11} />}
+                          }`} title={`${format(d, 'M月d日')}${isMakeup ? '（补签）' : ''}`}>
+                          {isMakeup ? (
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                          ) : done ? (
+                            <Heart size={11} fill="currentColor" />
+                          ) : (
+                            <Star size={11} />
+                          )}
                         </button>
                       )
                     })}

@@ -82,7 +82,7 @@ export default function Notes() {
   }
 
   return (
-    <div className="card p-5 h-full flex flex-col">
+    <div className="card card-note p-5 h-full flex flex-col">
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
