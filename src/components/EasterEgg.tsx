@@ -1,7 +1,8 @@
 // 治愈语录彩蛋 —— 点击星星随机显示一句语录
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Sparkles } from 'lucide-react'
+import gsap from 'gsap'
 
 // 语录库（10 句治愈语录）
 const QUOTES = [
@@ -21,6 +22,18 @@ export default function EasterEgg() {
   const [showQuote, setShowQuote] = useState(false)
   const [quote, setQuote] = useState('')
   const [animating, setAnimating] = useState(false)
+  const bubbleRef = useRef<HTMLDivElement>(null)
+
+  // 气泡出现时用 GSAP 入场动画，避免 CSS animate 导致内部绝对定位错位
+  useEffect(() => {
+    if (showQuote && bubbleRef.current) {
+      gsap.fromTo(
+        bubbleRef.current,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+      )
+    }
+  }, [showQuote])
 
   // 随机选一句语录
   const handleClick = useCallback(() => {
@@ -45,11 +58,31 @@ export default function EasterEgg() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-      {/* 语录弹出 */}
+      {/* 语录弹出 —— 使用 CSS 变量适配双主题背景 */}
       {showQuote && (
-        <div className="animate-[fade-in-up_0.4s_ease-out] bg-white rounded-2xl px-4 py-2.5 shadow-card-hover border border-border-light max-w-[200px]">
-          <p className="text-sm text-text-primary leading-relaxed">{quote}</p>
-          <div className="absolute -bottom-1.5 right-5 w-3 h-3 bg-white border-r border-b border-border-light rotate-45" />
+        <div
+          ref={bubbleRef}
+          className="relative rounded-2xl px-4 py-2.5 shadow-lg border max-w-[200px]"
+          style={{
+            backgroundColor: 'rgb(var(--bg-card))',
+            borderColor: 'rgb(var(--border-light))',
+          }}
+        >
+          <p
+            className="text-sm leading-relaxed"
+            style={{ color: 'rgb(var(--text-primary))' }}
+          >
+            {quote}
+          </p>
+          {/* 气泡下方小三角箭头 */}
+          <div
+            className="absolute -bottom-1.5 right-5 w-3 h-3 rotate-45"
+            style={{
+              backgroundColor: 'rgb(var(--bg-card))',
+              borderRight: '1px solid rgb(var(--border-light))',
+              borderBottom: '1px solid rgb(var(--border-light))',
+            }}
+          />
         </div>
       )}
 

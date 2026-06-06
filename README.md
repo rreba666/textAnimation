@@ -29,7 +29,7 @@
 | 数据导入导出 | 全部数据导出为 JSON 文件 / 从 JSON 文件恢复（二次确认） |
 | Markdown 导出 | 周报导出为 .md / 单篇笔记导出为 .md |
 | 通知与提醒 | Notification API：番茄钟结束 / 待办提醒 / 每晚 8 点打卡提醒 / 每日首次打开昨日总结 |
-| 成就徽章 | 4 个徽章 + Toast 解锁通知 + 进度条 + 偷看一眼开关 |
+| 成就徽章 | 10 个徽章 + 稀有度系统 + Steam 风格解锁通知 + 勋章墙弹窗 + 偷看一眼开关 + 首次引导遮罩 |
 | 卡片管理 | 显隐切换 + dnd-kit 拖拽排序 + 布局记忆 |
 | 背景切换 | 4 种预设（米白纸纹/淡粉渐变/水墨灰/森林绿）+ 深色主题联动 |
 | PWA 支持 | manifest + Service Worker 离线缓存 + 可安装到桌面 + 自定义安装按钮 |
@@ -116,6 +116,9 @@ src/
     ├── HeatmapModal.tsx        # 热力图 + 数据导入导出
     ├── Calendar.tsx            # 月日历
     ├── Notes.tsx               # Markdown 笔记 + 快捷键 N
+    ├── AchievementsModal.tsx   # 成就徽章弹窗（10 个徽章 + 勋章墙）
+    ├── AchievementNotify.tsx   # 成就解锁通知
+    ├── GuideTour.tsx           # 首次访问引导遮罩
     ├── CardMenu.tsx            # 卡片菜单
     ├── ManageCardsModal.tsx    # 管理卡片弹窗
     ├── BackgroundPicker.tsx    # 背景选择器

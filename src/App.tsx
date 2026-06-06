@@ -39,7 +39,9 @@ import Calendar from './components/Calendar'
 import Notes from './components/Notes'
 import EasterEgg from './components/EasterEgg'
 import ToastContainer from './components/Toast'
+import AchievementNotify from './components/AchievementNotify'
 import DataTipModal from './components/DataTipModal'
+import GuideTour, { shouldShowGuide } from './components/GuideTour'
 import ConfirmDialog from './components/ConfirmDialog'
 
 // 卡片注册表
@@ -150,6 +152,8 @@ export default function App() {
   const skeletonRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [showAutoTip, setShowAutoTip] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
+  const guideEverShown = useRef(false)
 
   // dnd-kit 拖拽状态
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -290,21 +294,48 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // ---- 成就检测（首次加载 + 每 30 秒） ----
+  // ---- 成就检测：状态变化时立即检查（内容就绪后） ----
+  const todos = useDashboardStore((s) => s.todos)
+  const habitRecords = useDashboardStore((s) => s.habitRecords)
+  const notes = useDashboardStore((s) => s.notes)
+  const links = useDashboardStore((s) => s.links)
+  const earlyCheckinDates = useDashboardStore((s) => s.earlyCheckinDates)
+  const lateNightNoteDates = useDashboardStore((s) => s.lateNightNoteDates)
+  const viewedOldNoteDates = useDashboardStore((s) => s.viewedOldNoteDates)
+
   useEffect(() => {
+    if (phase !== 'content') return
+    // store 字段变化时立即检查成就（用户操作后实时响应）
     checkAchievements()
+  }, [phase, todos, habitRecords, notes, links, earlyCheckinDates, lateNightNoteDates, viewedOldNoteDates])
+
+  // ---- 成就定时轮询（每 30 秒兜底） ----
+  useEffect(() => {
+    if (phase !== 'content') return
     const timer = setInterval(checkAchievements, 30_000)
     return () => clearInterval(timer)
+  }, [phase])
+
+  // ---- 首次访问引导遮罩 ----
+  useEffect(() => {
+    if (!shouldShowGuide()) return
+    const timer = setTimeout(() => { setShowGuide(true); guideEverShown.current = true }, 1800)
+    return () => clearTimeout(timer)
   }, [])
 
-  // ---- 首次访问数据提示 ----
+  // ---- 首次访问数据提示（引导关闭后再弹出） ----
   useEffect(() => {
     const KEY = 'hasSeenDataTip'
     if (localStorage.getItem(KEY)) return
-    // 等骨架屏 + 卡片入场动画完成后再弹出
-    const timer = setTimeout(() => { setShowAutoTip(true); localStorage.setItem(KEY, '1') }, 2000)
+
+    // 应该显示引导且引导尚未关闭 → 等待引导结束
+    if (shouldShowGuide() && !guideEverShown.current) return
+    // 引导已关闭（或不需要引导）→ 弹出数据提示
+    if (shouldShowGuide() && showGuide) return // 引导还在显示中
+
+    const timer = setTimeout(() => { setShowAutoTip(true); localStorage.setItem(KEY, '1') }, 600)
     return () => clearTimeout(timer)
-  }, [])
+  }, [showGuide])
 
   // ---- 后台提醒 ----
   useTodoReminder()
@@ -375,8 +406,10 @@ export default function App() {
 
             <EasterEgg />
             <ToastContainer />
+            <AchievementNotify />
             <ConfirmDialog />
             <DataTipModal open={showAutoTip} onClose={() => setShowAutoTip(false)} />
+            <GuideTour open={showGuide} onClose={() => setShowGuide(false)} />
           </div>
         )}
       </div>

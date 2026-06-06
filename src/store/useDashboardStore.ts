@@ -66,6 +66,11 @@ interface DashboardState {
   pomodoroRunning: boolean
   pomodoroStartedAt: string | null
   setPomodoroState: (s: { preset: number; timeLeft: number; running: boolean; startedAt: string | null }) => void
+
+  // --- 成就追踪 ---
+  earlyCheckinDates: string[]
+  lateNightNoteDates: string[]
+  viewedOldNoteDates: string[]
 }
 
 // 预设习惯列表
@@ -174,11 +179,19 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => {
           const dayRecords = s.habitRecords[date] || []
           const exists = dayRecords.includes(habitId)
+          // 追踪早起打卡（早上 8 点前）—— 成就：晨间诗人
+          const now = new Date()
+          const isEarly = now.getHours() < 8
+          const todayStr = format(now, 'yyyy-MM-dd')
+          const newEarlyDates = !exists && isEarly && !s.earlyCheckinDates.includes(todayStr)
+            ? [...s.earlyCheckinDates, todayStr]
+            : s.earlyCheckinDates
           return {
             habitRecords: {
               ...s.habitRecords,
               [date]: exists ? dayRecords.filter((id) => id !== habitId) : [...dayRecords, habitId],
             },
+            earlyCheckinDates: newEarlyDates,
           }
         })
       },
@@ -274,15 +287,42 @@ export const useDashboardStore = create<DashboardState>()(
       },
 
       updateNote: (id: string, data: { title?: string; content?: string }) => {
-        set((s) => ({
-          notes: s.notes.map((n) =>
-            n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n,
-          ),
-        }))
+        set((s) => {
+          // 追踪深夜记录（23 点后）—— 成就：深夜抄经人
+          const now = new Date()
+          const isLate = now.getHours() >= 23
+          const todayStr = format(now, 'yyyy-MM-dd')
+          const newLateDates = isLate && !s.lateNightNoteDates.includes(todayStr)
+            ? [...s.lateNightNoteDates, todayStr]
+            : s.lateNightNoteDates
+          return {
+            notes: s.notes.map((n) =>
+              n.id === id ? { ...n, ...data, updatedAt: new Date().toISOString() } : n,
+            ),
+            lateNightNoteDates: newLateDates,
+          }
+        })
       },
 
       selectNote: (id: string | null) => {
-        set({ selectedNoteId: id })
+        set((s) => {
+          // 追踪阅读 7 天前的笔记 —— 成就：回头看一眼
+          if (id) {
+            const note = s.notes.find((n) => n.id === id)
+            if (note) {
+              const noteDate = new Date(note.updatedAt)
+              const now = new Date()
+              const diffDays = (now.getTime() - noteDate.getTime()) / (1000 * 60 * 60 * 24)
+              if (diffDays >= 7) {
+                const todayStr = format(now, 'yyyy-MM-dd')
+                if (!s.viewedOldNoteDates.includes(todayStr)) {
+                  return { selectedNoteId: id, viewedOldNoteDates: [...s.viewedOldNoteDates, todayStr] }
+                }
+              }
+            }
+          }
+          return { selectedNoteId: id }
+        })
       },
 
       // ===== 天气 =====
@@ -335,6 +375,11 @@ export const useDashboardStore = create<DashboardState>()(
           pomodoroStartedAt: s.startedAt,
         })
       },
+
+      // ===== 成就追踪 =====
+      earlyCheckinDates: [],
+      lateNightNoteDates: [],
+      viewedOldNoteDates: [],
     }),
     {
       name: 'dashboard_store',
@@ -356,6 +401,9 @@ export const useDashboardStore = create<DashboardState>()(
         pomodoroTimeLeft: state.pomodoroTimeLeft,
         pomodoroRunning: state.pomodoroRunning,
         pomodoroStartedAt: state.pomodoroStartedAt,
+        earlyCheckinDates: state.earlyCheckinDates,
+        lateNightNoteDates: state.lateNightNoteDates,
+        viewedOldNoteDates: state.viewedOldNoteDates,
       }),
     },
   ),
