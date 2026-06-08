@@ -1,11 +1,12 @@
 // 习惯打卡卡片 —— 含连续天数统计和月统计图表
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { CheckCircle2, Plus, Trash2, Flame, ChevronLeft, ChevronRight, Heart, Star } from 'lucide-react'
 import { format, startOfWeek, addWeeks, subWeeks, isToday, isFuture } from 'date-fns'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from 'recharts'
 import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
+import { showToast } from './Toast'
 import HeatmapModal from './HeatmapModal'
 import AnimatedNumber from './AnimatedNumber'
 
@@ -34,6 +35,7 @@ export default function Habits() {
   const _tog = useDashboardStore((s) => s.toggleHabitDay)
 
   const [showAddForm, setShowAddForm] = useState(false)
+  const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null)
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitIcon, setNewHabitIcon] = useState('Star')
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
@@ -42,6 +44,66 @@ export default function Habits() {
   const [chartYear, setChartYear] = useState(() => new Date().getFullYear())
   const [chartHabitId, setChartHabitId] = useState<string | null>(null)
   const [showHeatmap, setShowHeatmap] = useState(false)
+  const habitRowRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const cardRef = useRef<HTMLDivElement>(null)
+  const prevHabitsLen = useRef(habits.length)
+
+  // 点击卡片外取消选中
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setSelectedHabitId(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // 新习惯入场动画（新习惯在最前面）
+  useEffect(() => {
+    if (habits.length > prevHabitsLen.current) {
+      const newHabit = habits[0]
+      requestAnimationFrame(() => {
+        const el = habitRowRefs.current.get(newHabit.id)
+        if (el) gsap.from(el, { opacity: 0, y: -10, duration: 0.3, ease: 'power2.out' })
+      })
+    }
+    prevHabitsLen.current = habits.length
+  }, [habits])
+
+  // 删除习惯（含 GSAP 退场动画 + 撤销 Toast）
+  const handleDeleteHabit = useCallback((id: string) => {
+    const el = habitRowRefs.current.get(id)
+    const habit = habits.find((h) => h.id === id)
+    if (!habit) { deleteHabit(id); return }
+    const snapshot = { name: habit.name, icon: habit.icon }
+    const doRemove = () => {
+      deleteHabit(id)
+      setSelectedHabitId(null)
+      showToast({
+        message: `已删除「${snapshot.name}」`,
+        showUndo: true,
+        onUndo: () => { useDashboardStore.getState().addHabit(snapshot.name, snapshot.icon) },
+      })
+    }
+    if (el) {
+      gsap.to(el, { opacity: 0, height: 0, paddingTop: 0, paddingBottom: 0, duration: 0.25, ease: 'power2.in', onComplete: doRemove })
+    } else {
+      doRemove()
+    }
+  }, [habits, deleteHabit])
+
+  // Delete 键删除选中习惯
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Del') return
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      if (selectedHabitId) handleDeleteHabit(selectedHabitId)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [selectedHabitId, handleDeleteHabit])
 
   const handleAddHabit = () => {
     if (!newHabitName.trim()) return
@@ -80,7 +142,7 @@ export default function Habits() {
   }, [habits, getHabitStreak])
 
   return (
-    <div className="card p-5 h-full flex flex-col">
+    <div ref={cardRef} className="card p-5 h-full flex flex-col">
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
@@ -164,7 +226,7 @@ export default function Habits() {
               </div>
 
               <div className="grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 mb-2 items-center">
-                <div className="w-20" />
+                <div className="w-24 px-2" />
                 {DAY_LABELS.map((label, i) => {
                   const today_ = isToday(weekDays[i])
                   return (
@@ -178,8 +240,20 @@ export default function Habits() {
                 const weekData = getWeekRecords(habit.id, weekStart)
                 const streak = getHabitStreak(habit.id)
                 return (
-                  <div key={habit.id} className="grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 items-center py-1.5 hover:bg-notebook-bg/50 dark:hover:bg-white/5 rounded-xl transition-colors group">
-                    <div className="w-20 pr-1 flex items-center gap-1.5">
+                  <div
+                    key={habit.id}
+                    ref={(el) => { if (el) habitRowRefs.current.set(habit.id, el) }}
+                    className={`grid grid-cols-[auto_repeat(7,1fr)_40px] gap-1 items-center py-1.5 rounded-xl transition-colors group cursor-pointer ${
+                      selectedHabitId === habit.id
+                        ? 'bg-[rgb(var(--accent-primary)/0.12)] ring-1 ring-[rgb(var(--accent-primary)/0.3)]'
+                        : 'hover:bg-notebook-bg/50 dark:hover:bg-white/5'
+                    }`}
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest('button')) return
+                      setSelectedHabitId(selectedHabitId === habit.id ? null : habit.id)
+                    }}
+                  >
+                    <div className="w-24 pl-2 pr-1 flex items-center gap-1">
                       {streak > 0 && <Flame size={11} className="text-warm-orange shrink-0" />}
                       <span className="text-xs font-medium text-text-primary truncate">{habit.name}</span>
                     </div>
@@ -210,7 +284,7 @@ export default function Habits() {
                       )
                     })}
                     <div className="flex items-center justify-end">
-                      <button onClick={() => deleteHabit(habit.id)} className="p-0.5 rounded text-text-light hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => handleDeleteHabit(habit.id)} className="p-0.5 rounded text-text-light hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                         <Trash2 size={12} />
                       </button>
                     </div>

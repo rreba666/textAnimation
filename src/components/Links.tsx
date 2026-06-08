@@ -1,8 +1,10 @@
 // 快捷链接卡片
 
-import { useState } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { Link2, Plus, Trash2, ExternalLink, Globe } from 'lucide-react'
+import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
+import { showToast } from './Toast'
 
 function getFaviconUrl(url: string): string {
   try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64` } catch { return '' }
@@ -21,6 +23,43 @@ export default function Links() {
   const [newName, setNewName] = useState('')
   const [newUrl, setNewUrl] = useState('')
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
+  const linkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
+  const prevLinksLen = useRef(links.length)
+
+  // 删除链接（含 GSAP 退场 + 撤销）
+  const handleDeleteLink = useCallback((id: string) => {
+    const el = linkRefs.current.get(id)
+    const link = links.find((l) => l.id === id)
+    if (!link) { deleteLink(id); return }
+    const snapshot = { name: link.name, url: link.url }
+    const doRemove = () => {
+      deleteLink(id)
+      showToast({
+        message: `已删除「${snapshot.name}」`,
+        showUndo: true,
+        onUndo: () => { useDashboardStore.getState().addLink(snapshot.name, snapshot.url) },
+      })
+    }
+    if (el) {
+      gsap.to(el, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: doRemove })
+    } else {
+      doRemove()
+    }
+  }, [links, deleteLink])
+
+  // 新链接入场动画
+  useEffect(() => {
+    if (links.length > prevLinksLen.current) {
+      const newLink = links[links.length - 1]
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = linkRefs.current.get(newLink.id)
+          if (el) gsap.from(el, { opacity: 0, y: -10, duration: 0.3, ease: 'power2.out' })
+        })
+      })
+    }
+    prevLinksLen.current = links.length
+  }, [links])
 
   const handleAdd = () => {
     if (!newName.trim() || !newUrl.trim()) return
@@ -69,6 +108,7 @@ export default function Links() {
 
               return (
                 <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
+                  ref={(el) => { if (el) linkRefs.current.set(link.id, el) }}
                   className="group flex items-center gap-3 p-3 rounded-2xl bg-notebook-bg/50 hover:bg-notebook-bg dark:hover:bg-white/8 hover:shadow-sm transition-all duration-200 hover:-translate-y-0.5 relative"
                   title={`${link.name}\n${domain}`}>
                   <div className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center bg-notebook-card overflow-hidden">
@@ -79,7 +119,7 @@ export default function Links() {
                     <div className="text-sm font-medium text-text-primary leading-tight break-words">{link.name}</div>
                     <div className="text-xs text-text-light mt-0.5 truncate">{domain}</div>
                   </div>
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteLink(link.id) }}
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteLink(link.id) }}
                     className="absolute top-1.5 right-1.5 p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all">
                     <Trash2 size={13} />
                   </button>

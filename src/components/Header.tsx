@@ -115,13 +115,20 @@ export default function Header() {
   const [showDataTip, setShowDataTip] = useState(false)
   const [showAchievements, setShowAchievements] = useState(false)
 
-  // PWA 安装：监听 beforeinstallprompt（线上 HTTPS 触发）+ 开发环境常显
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  // PWA 安装：读取 index.html 预捕获的全局变量 + 监听后续事件
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
+    () => (window as any).__pwaInstallPrompt || null
+  )
   const [installed, setInstalled] = useState(false)
 
   useEffect(() => {
+    // 如果在 index.html 脚本中已捕获到，直接使用
+    if ((window as any).__pwaInstallPrompt && !installPrompt) {
+      setInstallPrompt((window as any).__pwaInstallPrompt)
+    }
     const handler = (e: Event) => {
       e.preventDefault()
+      ;(window as any).__pwaInstallPrompt = e
       setInstallPrompt(e as BeforeInstallPromptEvent)
     }
     window.addEventListener('beforeinstallprompt', handler)
@@ -129,8 +136,9 @@ export default function Header() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  // 开发环境(localhost)或线上 HTTPS 均可显示安装按钮
-  const showInstallBtn = !installed && (!!installPrompt || window.location.hostname === 'localhost')
+  // HTTPS 环境或 localhost 显示安装按钮（无 prompt 时作为引导入口）
+  const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
+  const showInstallBtn = !installed && isSecure
 
   const handleInstall = useCallback(async () => {
     if (installPrompt) {

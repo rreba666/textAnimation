@@ -21,6 +21,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RE:序章</title>
 
+    <!-- 提前捕获 beforeinstallprompt，避免 React 挂载前事件已触发而丢失 -->
+    <script>
+      window.__pwaInstallPrompt = null
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault()
+        window.__pwaInstallPrompt = e
+      })
+    </script>
+
     <!-- Service Worker 注册（仅 HTTPS / localhost 下生效） -->
     <script>
       if ('serviceWorker' in navigator) {

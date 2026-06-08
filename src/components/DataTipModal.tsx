@@ -13,10 +13,12 @@ interface Props {
 }
 
 const SHORTCUTS = [
-  { key: 'N', desc: '新建笔记' },
-  { key: 'T', desc: '聚焦待办' },
-  { key: 'E', desc: '编辑待办' },
-  { key: '', desc: '拖拽卡片可调整顺序' },
+  { key: 'N', desc: '新建 / 聚焦笔记' },
+  { key: 'T', desc: '聚焦待办输入框' },
+  { key: 'E', desc: '编辑第一个未完成待办' },
+  { key: 'Del', desc: '删除选中的待办 / 习惯 / 笔记' },
+  { key: 'Esc', desc: '关闭弹窗 / 取消选中' },
+  { key: '', desc: '单击待办 / 习惯项可选中' },
 ]
 
 export default function DataTipModal({ open, onClose }: Props) {
@@ -110,6 +112,21 @@ export default function DataTipModal({ open, onClose }: Props) {
             <p className="flex items-start gap-1.5">
               <span style={{ color: 'rgb(var(--accent-green))' }} className="shrink-0 mt-0.5">-</span>
               <span>建议定期使用「导出数据」功能备份</span>
+            </p>
+          </div>
+        </div>
+
+        {/* 权限说明 */}
+        <div className="mb-5">
+          <h3 className="text-sm font-medium mb-2" style={{ color: 'rgb(var(--accent-secondary))' }}>所需权限</h3>
+          <div className="text-sm leading-relaxed space-y-1.5" style={{ color: 'rgb(var(--text-primary))' }}>
+            <p className="flex items-start gap-1.5">
+              <span style={{ color: 'rgb(var(--accent-secondary))' }} className="shrink-0 mt-0.5">-</span>
+              <span><strong>通知权限</strong>：用于番茄钟结束、待办提醒、每晚打卡提醒</span>
+            </p>
+            <p className="flex items-start gap-1.5">
+              <span style={{ color: 'rgb(var(--text-light))' }} className="shrink-0 mt-0.5">-</span>
+              <span>通知仅在用户主动授权后生效，可随时在浏览器设置中关闭</span>
             </p>
           </div>
         </div>

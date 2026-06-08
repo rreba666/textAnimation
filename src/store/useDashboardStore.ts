@@ -108,7 +108,7 @@ export const useDashboardStore = create<DashboardState>()(
           completed: false,
           createdAt: new Date().toISOString(),
         }
-        set((s) => ({ todos: [...s.todos, todo] }))
+        set((s) => ({ todos: [todo, ...s.todos] }))
       },
 
       toggleTodo: (id: string) => {
@@ -164,7 +164,7 @@ export const useDashboardStore = create<DashboardState>()(
           name: name.trim(),
           icon: icon || 'Star',
         }
-        set((s) => ({ habits: [...s.habits, habit] }))
+        set((s) => ({ habits: [habit, ...s.habits] }))
       },
 
       deleteHabit: (id: string) => {

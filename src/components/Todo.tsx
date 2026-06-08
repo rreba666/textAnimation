@@ -37,6 +37,8 @@ function SortableItem({
   onEditConfirm,
   onEditCancel,
   onDelete,
+  isSelected,
+  onSelect,
   reminderId,
   reminderTime,
   onReminderClick,
@@ -55,6 +57,8 @@ function SortableItem({
   onEditConfirm: () => void
   onEditCancel: () => void
   onDelete: () => void
+  isSelected: boolean
+  onSelect: () => void
   reminderId: string | null
   reminderTime: string
   onReminderClick: () => void
@@ -80,7 +84,16 @@ function SortableItem({
         if (el) itemRefs.current.set(todo.id, el)
       }}
       style={style}
-      className="group flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-notebook-bg/60 dark:hover:bg-white/5 transition-colors"
+      className={`group flex items-center gap-2 px-2 py-2 rounded-xl transition-colors cursor-pointer ${
+        isSelected
+          ? 'bg-[rgb(var(--accent-primary)/0.12)] ring-1 ring-[rgb(var(--accent-primary)/0.3)]'
+          : 'hover:bg-notebook-bg/60 dark:hover:bg-white/5'
+      }`}
+      onClick={(e) => {
+        // 不拦截按钮点击
+        if ((e.target as HTMLElement).closest('button')) return
+        onSelect()
+      }}
     >
       {/* 拖拽手柄 */}
       <span
@@ -179,6 +192,7 @@ export default function Todo() {
   const [showTrend, setShowTrend] = useState(false)
   const [reminderId, setReminderId] = useState<string | null>(null)
   const [reminderTime, setReminderTime] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const filtered = todos.filter((t) => {
     if (filter === 'active') return !t.completed
@@ -196,13 +210,25 @@ export default function Todo() {
 
   // GSAP 入场动画
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
+  const cardRef = useRef<HTMLDivElement>(null)
   const prevTodosLength = useRef(todos.length)
   const todoInputRef = useRef<HTMLInputElement>(null)
+
+  // 点击卡片外取消选中
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setSelectedId(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   useEffect(() => {
     if (todos.length > prevTodosLength.current) {
       const newCount = todos.length - prevTodosLength.current
-      const newTodos = todos.slice(todos.length - newCount)
+      const newTodos = todos.slice(0, newCount)
       requestAnimationFrame(() => {
         newTodos.forEach((todo) => {
           const el = itemRefs.current.get(todo.id)
@@ -257,6 +283,19 @@ export default function Todo() {
     else doRemove()
   }
 
+  // Delete 键删除选中待办
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Del') return
+      if (editingId) return
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      if (selectedId) { handleDelete(selectedId); setSelectedId(null) }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [selectedId, editingId])
+
   const handleAdd = () => { if (!inputValue.trim()) return; addTodo(inputValue); setInputValue('') }
 
   // dnd-kit 传感器
@@ -278,7 +317,7 @@ export default function Todo() {
   }
 
   return (
-    <div className="card p-5 h-full flex flex-col">
+    <div ref={cardRef} className="card p-5 h-full flex flex-col">
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
@@ -342,6 +381,8 @@ export default function Todo() {
                     onEditConfirm={() => { editTodo(todo.id, editingText); setEditingId(null) }}
                     onEditCancel={() => setEditingId(null)}
                     onDelete={() => handleDelete(todo.id)}
+                    isSelected={selectedId === todo.id}
+                    onSelect={() => setSelectedId(selectedId === todo.id ? null : todo.id)}
                     reminderId={reminderId}
                     reminderTime={reminderTime}
                     onReminderClick={() => { if (reminderId === todo.id) { setReminderId(null); return } setReminderId(todo.id); setReminderTime(todo.reminderAt || '') }}

@@ -54,7 +54,7 @@ const CARD_REGISTRY: Record<string, { Comp: React.ComponentType; className: stri
   pomodoro:   { Comp: PomodoroTimer, className: '' },
   weekstats:  { Comp: WeekStats,     className: '' },
   calendar:   { Comp: Calendar,      className: '' },
-  notes:      { Comp: Notes,         className: 'md:col-span-2 lg:col-span-3 min-h-[420px]' },
+  notes:      { Comp: Notes,         className: 'md:col-span-2 lg:col-span-3 min-h-[420px] max-h-[420px]' },
 }
 
 // ---- 可排序卡片包装器 ----
@@ -296,16 +296,7 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // ---- 成就检测：状态变化时立即检查（内容就绪后） ----
-  const todos = useDashboardStore((s) => s.todos)
-  const habitRecords = useDashboardStore((s) => s.habitRecords)
-  const notes = useDashboardStore((s) => s.notes)
-  const links = useDashboardStore((s) => s.links)
-  const earlyCheckinDates = useDashboardStore((s) => s.earlyCheckinDates)
-  const lateNightNoteDates = useDashboardStore((s) => s.lateNightNoteDates)
-  const viewedOldNoteDates = useDashboardStore((s) => s.viewedOldNoteDates)
-
-  // 成就检测：检查并弹出通知
+  // ---- 成就检测：用 vanilla subscribe 在 React 渲染周期外运行，避免每次状态变更引发全树重渲染 ----
   const runAchievementCheck = useRef(() => {
     const newBadges = checkAchievementsRaw()
     newBadges.forEach((b) => showAchievementNotify({ id: b.id, name: b.name, iconName: b.iconName, rarity: b.rarity }))
@@ -313,14 +304,12 @@ export default function App() {
 
   useEffect(() => {
     if (phase !== 'content') return
+    // 立即执行一次
     runAchievementCheck.current()
-  }, [phase, todos, habitRecords, notes, links, earlyCheckinDates, lateNightNoteDates, viewedOldNoteDates])
-
-  // ---- 成就定时轮询（每 30 秒兜底） ----
-  useEffect(() => {
-    if (phase !== 'content') return
+    // Zustand vanilla subscribe：状态变化时静默检查，不触发 React 重渲染
+    const unsub = useDashboardStore.subscribe(() => runAchievementCheck.current())
     const timer = setInterval(() => runAchievementCheck.current(), 30_000)
-    return () => clearInterval(timer)
+    return () => { unsub(); clearInterval(timer) }
   }, [phase])
 
   // ---- 首次访问引导遮罩 ----

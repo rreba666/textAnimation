@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import gsap from 'gsap'
 import { useDashboardStore } from '../store/useDashboardStore'
+import { showToast } from './Toast'
 
 export default function Notes() {
   const notes = useDashboardStore((s) => s.notes)
@@ -20,6 +21,20 @@ export default function Notes() {
   const [localTitle, setLocalTitle] = useState('')
   const [localContent, setLocalContent] = useState('')
   const saveTimer = useRef<ReturnType<typeof setTimeout>>()
+  const noteRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  const cardRef = useRef<HTMLDivElement>(null)
+  const prevNotesLen = useRef(notes.length)
+
+  // 点击卡片外取消选中笔记
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        selectNote(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [selectNote])
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId) || null
 
@@ -35,6 +50,57 @@ export default function Notes() {
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => { updateNote(noteId, { title, content }) }, 1000)
   }, [updateNote])
+
+  // 删除笔记（含 GSAP 退场动画 + 撤销 Toast）
+  const handleDeleteNote = useCallback((id: string) => {
+    const el = noteRefs.current.get(id)
+    const note = notes.find((n) => n.id === id)
+    if (!note) { deleteNote(id); return }
+    const snapshot = { title: note.title, content: note.content }
+    const doRemove = () => {
+      deleteNote(id)
+      showToast({
+        message: `已删除「${snapshot.title.slice(0, 10)}${snapshot.title.length > 10 ? '...' : ''}」`,
+        showUndo: true,
+        onUndo: () => {
+          const store = useDashboardStore.getState()
+          const newId = store.addNote()
+          store.updateNote(newId, { title: snapshot.title, content: snapshot.content })
+        },
+      })
+    }
+    if (el) {
+      gsap.to(el, { opacity: 0, x: -20, height: 0, paddingTop: 0, paddingBottom: 0, duration: 0.25, ease: 'power2.in', onComplete: doRemove })
+    } else {
+      doRemove()
+    }
+  }, [notes, deleteNote])
+
+  // 新笔记入场动画（双 rAF 确保 ref 回调已执行）
+  useEffect(() => {
+    if (notes.length > prevNotesLen.current) {
+      const newNote = notes[0]
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = noteRefs.current.get(newNote.id)
+          if (el) gsap.from(el, { opacity: 0, x: -20, duration: 0.3, ease: 'power2.out' })
+        })
+      })
+    }
+    prevNotesLen.current = notes.length
+  }, [notes])
+
+  // Delete 键删除选中笔记
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Del') return
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      if (selectedNoteId) handleDeleteNote(selectedNoteId)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [selectedNoteId, handleDeleteNote])
 
   useEffect(() => { return () => { if (saveTimer.current) clearTimeout(saveTimer.current) } }, [])
 
@@ -82,7 +148,7 @@ export default function Notes() {
   }
 
   return (
-    <div className="card card-note p-5 h-full flex flex-col">
+    <div ref={cardRef} className="card card-note p-5 h-full flex flex-col overflow-hidden">
       {/* 标题栏 */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
@@ -97,7 +163,7 @@ export default function Notes() {
       {/* 主内容区：左侧列表 + 右侧编辑 */}
       <div className="flex-1 flex gap-4 min-h-0">
         {/* 左侧：笔记列表 */}
-        <div className="w-32 sm:w-44 shrink-0 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+        <div className="w-32 sm:w-44 shrink-0 flex flex-col gap-1 overflow-y-auto custom-scrollbar min-h-0">
           {notes.length === 0 ? (
             <button onClick={addNote} className="flex flex-col items-center justify-center py-8 text-text-light hover:text-warm-orange transition-colors w-full">
               <FileText size={28} className="mb-1 opacity-30" />
@@ -105,7 +171,10 @@ export default function Notes() {
             </button>
           ) : (
             notes.map((note) => (
-              <button key={note.id} onClick={() => selectNote(note.id)}
+              <button
+                key={note.id}
+                ref={(el) => { if (el) noteRefs.current.set(note.id, el) }}
+                onClick={() => selectNote(note.id)}
                 className={`text-left p-2.5 rounded-xl transition-all duration-200 ${
                   selectedNoteId === note.id ? 'bg-warm-orange/10 border border-warm-orange/20' : 'hover:bg-notebook-bg dark:hover:bg-white/8 border border-transparent'
                 }`}>
@@ -120,7 +189,7 @@ export default function Notes() {
         </div>
 
         {/* 右侧：编辑器 */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {selectedNote ? (
             <>
               <div className="flex items-center justify-between mb-2">
@@ -145,7 +214,7 @@ export default function Notes() {
                   >
                     <FileDown size={16} />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); deleteNote(selectedNote.id) }} className="p-1.5 rounded-lg text-text-secondary hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDeleteNote(selectedNote.id) }} className="p-1.5 rounded-lg text-text-secondary hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
                 </div>
               </div>
 
