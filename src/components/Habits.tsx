@@ -166,8 +166,8 @@ export default function Habits() {
             </svg>
           </button>
           <div className="flex bg-notebook-bg rounded-lg p-0.5">
-            <button onClick={() => setViewMode('week')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-white text-warm-orange shadow-sm' : 'text-text-secondary'}`}>周视图</button>
-            <button onClick={() => setViewMode('month')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-white text-warm-orange shadow-sm' : 'text-text-secondary'}`}>月统计</button>
+            <button onClick={() => setViewMode('week')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-[rgb(var(--bg-card))] text-warm-orange shadow-sm' : 'text-text-secondary'}`}>周视图</button>
+            <button onClick={() => setViewMode('month')} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-[rgb(var(--bg-card))] text-warm-orange shadow-sm' : 'text-text-secondary'}`}>月统计</button>
           </div>
           <button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-warm-green text-white rounded-xl hover:opacity-90 transition-opacity">
             <Plus size={14} /><span className="hidden sm:inline">添加</span>
@@ -192,12 +192,12 @@ export default function Habits() {
             type="text" value={newHabitName} onChange={(e) => setNewHabitName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddHabit()}
             placeholder="习惯名称" autoFocus
-            className="w-full px-3 py-2 text-sm border border-border-light rounded-xl outline-none focus:border-warm-orange bg-white text-text-primary placeholder-text-light"
+            className="w-full px-3 py-2 text-sm border border-border-light rounded-xl outline-none focus:border-warm-orange bg-[rgb(var(--bg-card))] text-text-primary placeholder-text-light"
           />
           <div className="flex flex-wrap gap-1.5">
             {ICON_OPTIONS.map((icon) => (
               <button key={icon.name} onClick={() => setNewHabitIcon(icon.name)}
-                className={`px-2 py-1 text-xs rounded-lg transition-colors ${newHabitIcon === icon.name ? 'bg-warm-orange text-white' : 'bg-white text-text-secondary hover:bg-warm-pink/20'}`}>
+                className={`px-2 py-1 text-xs rounded-lg transition-colors ${newHabitIcon === icon.name ? 'bg-warm-orange text-white' : 'bg-[rgb(var(--bg-card))] text-text-secondary hover:bg-warm-pink/20'}`}>
                 {icon.label}
               </button>
             ))}

@@ -106,7 +106,7 @@ export default function BackgroundPicker({ open, onClose }: Props) {
               }}
             >
               <span className="absolute inset-x-0 bottom-2 text-xs font-medium"
-                style={{ color: 'rgb(var(--text-primary))' }}>
+                style={{ color: '#4a4a4a' }}>
                 {p.name}
               </span>
             </button>

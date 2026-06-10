@@ -23,7 +23,7 @@ interface GuideStep {
   placement: 'bottom' | 'left'
 }
 
-const STEPS: GuideStep[] = [
+const BASE_STEPS: GuideStep[] = [
   {
     selector: 'button[title="成就徽章"]',
     fallbackTitle: '成就徽章',
@@ -59,7 +59,24 @@ const STEPS: GuideStep[] = [
     description: '一键切换亮色 / 暗色模式，暗色模式使用暖亮色系，夜间使用更护眼。',
     placement: 'left',
   },
+  {
+    selector: 'button[title="安装到桌面"]',
+    fallbackTitle: '安装到桌面',
+    title: '安装到桌面',
+    description: '将 RE:序章 安装到桌面或开始菜单，像原生 App 一样快速打开。支持 Chrome / Edge / 移动浏览器。',
+    placement: 'bottom',
+  },
 ]
+
+/** 过滤：PWA 安装按钮不可见时（已安装 / 不支持），跳过对应步骤 */
+function getVisibleSteps(): GuideStep[] {
+  return BASE_STEPS.filter((s) => {
+    if (s.fallbackTitle === '安装到桌面') {
+      return !!document.querySelector(s.selector)
+    }
+    return true
+  })
+}
 
 /** 标记引导已看完 */
 function markGuideSeen() {
@@ -80,8 +97,9 @@ export default function GuideTour({ open, onClose }: Props) {
   const popupRef = useRef<HTMLDivElement>(null)
   const [animating, setAnimating] = useState(false)
 
-  const step = STEPS[stepIndex]
-  const isLast = stepIndex === STEPS.length - 1
+  const visibleSteps = getVisibleSteps()
+  const step = visibleSteps[stepIndex]
+  const isLast = stepIndex === visibleSteps.length - 1
 
   // 定位当前步骤的目标元素
   const locateTarget = useCallback(() => {
@@ -255,7 +273,7 @@ export default function GuideTour({ open, onClose }: Props) {
 
           {/* 步骤指示器 */}
           <div className="flex items-center gap-1.5 mb-3">
-            {STEPS.map((_, i) => (
+            {visibleSteps.map((_, i) => (
               <div
                 key={i}
                 className="h-1 rounded-full transition-all duration-300"
@@ -292,7 +310,7 @@ export default function GuideTour({ open, onClose }: Props) {
 
             <div className="flex items-center gap-2">
               <span className="text-[10px]" style={{ color: 'rgb(var(--text-light))' }}>
-                {stepIndex + 1} / {STEPS.length}
+                {stepIndex + 1} / {visibleSteps.length}
               </span>
               <button
                 onClick={goNext}

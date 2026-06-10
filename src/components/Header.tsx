@@ -24,7 +24,6 @@ import BackgroundPicker from './BackgroundPicker'
 import DataTipModal from './DataTipModal'
 const AchievementsModal = lazy(() => import('./AchievementsModal'))
 import gsap from 'gsap'
-import { showConfirm } from './ConfirmDialog'
 import type { WeatherData, ForecastDay } from '../types'
 
 // WMO 天气代码 → 描述
@@ -136,24 +135,16 @@ export default function Header() {
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  // HTTPS 环境或 localhost 显示安装按钮（无 prompt 时作为引导入口）
-  const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
-  const showInstallBtn = !installed && isSecure
+  // 仅当浏览器提供原生安装事件时才显示按钮
+  const showInstallBtn = !installed && !!installPrompt
 
   const handleInstall = useCallback(async () => {
-    if (installPrompt) {
-      // 线上 HTTPS：调用浏览器原生安装弹窗
-      installPrompt.prompt()
-      const result = await installPrompt.userChoice
-      if (result.outcome === 'accepted') setInstallPrompt(null)
-    } else {
-      // localhost 降级：引导用户手动安装
-      await showConfirm({
-        title: 'PWA 安装提示',
-        message: 'PWA 安装需要 HTTPS 环境。\n\n线上部署后：\n• Chrome/Edge：地址栏右侧点击安装图标\n• 手机浏览器：菜单 → 添加到主屏幕\n\n当前 localhost 请用 Chrome DevTools → Application → Manifest → Install 测试',
-        confirmText: '知道了',
-        cancelText: '',
-      })
+    if (!installPrompt) return
+    installPrompt.prompt()
+    const result = await installPrompt.userChoice
+    if (result.outcome === 'accepted') {
+      setInstallPrompt(null)
+      setInstalled(true)
     }
   }, [installPrompt])
 
