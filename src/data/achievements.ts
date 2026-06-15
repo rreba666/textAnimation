@@ -333,6 +333,89 @@ export const BADGES: BadgeData[] = [
       return max
     },
   },
+  // ---- 心情深度类 ----
+  {
+    id: 'happy7', name: '开心果', cond: '连续 7 天记录为开心', desc: '你笑得像一颗糖，甜甜的，亮亮的。',
+    target: 7, rarity: 'rare', iconName: 'happy7',
+    current: () => {
+      const { moodRecords } = useDashboardStore.getState()
+      const sorted = Object.keys(moodRecords).sort()
+      let max = 0, cur = 0
+      for (const date of sorted) {
+        if (moodRecords[date] === 'happy') { cur++; if (cur > max) max = cur }
+        else cur = 0
+      }
+      return max
+    },
+  },
+  {
+    id: 'stable30', name: '情绪稳定', cond: '连续 30 天无难过', desc: '你把日子过得稳稳当当，像一艘不晃的船。',
+    target: 30, rarity: 'epic', iconName: 'stable30',
+    current: () => {
+      const { moodRecords } = useDashboardStore.getState()
+      const sorted = Object.keys(moodRecords).sort()
+      if (sorted.length === 0) return 0
+      let max = 0, cur = 0
+      // 从最早记录日到今天之间统计连续无 sad 天数
+      const start = new Date(sorted[0])
+      const today = new Date()
+      for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+        const key = format(d, 'yyyy-MM-dd')
+        if (moodRecords[key] !== 'sad') { cur++; if (cur > max) max = cur }
+        else cur = 0
+      }
+      return max
+    },
+  },
+  {
+    id: 'mood30', name: '百日记', cond: '累计记录心情 30 天', desc: '你回头翻一翻，会发现日子从来不是空白。',
+    target: 30, rarity: 'rare', iconName: 'mood30',
+    current: () => Object.keys(useDashboardStore.getState().moodRecords).length,
+  },
+  {
+    id: 'mood100', name: '全年无休', cond: '累计记录心情 100 天', desc: '一百个日夜，你一次也没有缺席和自己的对话。',
+    target: 100, rarity: 'legendary', iconName: 'mood100',
+    current: () => Object.keys(useDashboardStore.getState().moodRecords).length,
+  },
+  {
+    id: 'rainbow1', name: '彩虹周', cond: '一周内出现 4 种不同心情', desc: '喜怒哀乐都是你，每一种都很好看。',
+    target: 4, rarity: 'epic', iconName: 'rainbow1',
+    current: () => {
+      const { moodRecords } = useDashboardStore.getState()
+      const dates = Object.keys(moodRecords)
+      for (let i = 0; i < dates.length; i++) {
+        const weekEnd = new Date(dates[i])
+        weekEnd.setDate(weekEnd.getDate() + 6)
+        const types = new Set<string>()
+        for (const date of dates) {
+          if (date >= dates[i] && date <= format(weekEnd, 'yyyy-MM-dd')) {
+            types.add(moodRecords[date])
+          }
+        }
+        if (types.size >= 4) return 4
+      }
+      return 0
+    },
+  },
+  {
+    id: 'energy1', name: '元气满满', cond: '同一天开心 + 打卡 ≥3 个习惯', desc: '快乐和行动，在同一天碰了面。',
+    target: 1, rarity: 'rare', iconName: 'energy1',
+    current: () => {
+      const { moodRecords, habitRecords } = useDashboardStore.getState()
+      for (const [date, mood] of Object.entries(moodRecords)) {
+        if (mood === 'happy' && habitRecords[date] && habitRecords[date].length >= 3) return 1
+      }
+      return 0
+    },
+  },
+  {
+    id: 'allmood1', name: '情绪大师', cond: '解锁全部 5 种心情', desc: '不是没有情绪，是你把它们都接住了。',
+    target: 5, rarity: 'legendary', iconName: 'allmood1',
+    current: () => {
+      const { moodRecords } = useDashboardStore.getState()
+      return new Set(Object.values(moodRecords)).size
+    },
+  },
   // ---- 特殊模式类 ----
   {
     id: 'symmetry1', name: '对称日', cond: '在日期对称的日子打卡', desc: '今天左右对称，你也刚刚好。',

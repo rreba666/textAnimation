@@ -58,6 +58,13 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   oneyear1: <BadgeOneyear1 />,
   perfect1: <BadgePerfect1 />,
   badge15: <BadgeBadge15 />,
+  happy7: <BadgeHappy7 />,
+  stable30: <BadgeStable30 />,
+  mood30: <BadgeMood30 />,
+  mood100: <BadgeMood100 />,
+  rainbow1: <BadgeRainbow1 />,
+  energy1: <BadgeEnergy1 />,
+  allmood1: <BadgeAllmood1 />,
 }
 
 // ---- SVG 徽章图标 ----
@@ -375,6 +382,85 @@ function BadgeGoodnight5() {
       <path d="M30 8c-6 3-10 10-8 18" stroke="#5B6EF5" strokeWidth="2" strokeLinecap="round" />
       <circle cx="24" cy="28" r="2" fill="#5B6EF5" opacity="0.5" />
       <line x1="24" y1="32" x2="24" y2="36" stroke="#5B6EF5" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// ---- 心情深度成就 SVG 图标 ----
+function BadgeHappy7() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.12" />
+      <circle cx="24" cy="24" r="22" stroke="#E8B88A" strokeWidth="2" />
+      <circle cx="24" cy="22" r="10" stroke="#E8B88A" strokeWidth="2" />
+      <path d="M18 20c1-1 3-1 4 0M28 20c1-1 3-1 4 0" stroke="#E8B88A" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18 28c2 2 6 2 8 0" stroke="#E8B88A" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeStable30() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#7B8DB8" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#7B8DB8" strokeWidth="2" />
+      <line x1="4" y1="24" x2="44" y2="24" stroke="#7B8DB8" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="24" cy="24" r="4" fill="#7B8DB8" opacity="0.3" />
+    </svg>
+  )
+}
+function BadgeMood30() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A5A5" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A5A5" strokeWidth="2" />
+      <rect x="12" y="12" width="24" height="24" rx="4" stroke="#D4A5A5" strokeWidth="1.5" />
+      <path d="M16 22h16M16 28h12" stroke="#D4A5A5" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="36" cy="16" r="1.5" fill="#D4A5A5" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeMood100() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <rect x="10" y="8" width="28" height="32" rx="5" stroke="#D4A540" strokeWidth="1.8" />
+      <path d="M14 18h20M14 24h16M14 30h12" stroke="#D4A540" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="24" cy="12" r="1.5" fill="#D4A540" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeRainbow1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.08" />
+      <circle cx="24" cy="24" r="22" stroke="url(#rainbow)" strokeWidth="2" />
+      <defs><linearGradient id="rainbow" x1="0" y1="0" x2="48" y2="48"><stop offset="0%" stopColor="#f09433"/><stop offset="25%" stopColor="#dc2743"/><stop offset="50%" stopColor="#9b4dca"/><stop offset="75%" stopColor="#5b6ef5"/><stop offset="100%" stopColor="#38bdf8"/></linearGradient></defs>
+      <path d="M16 30c1-3 3-6 8-6s7 3 8 6" stroke="#E8B88A" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeEnergy1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#E8B88A" strokeWidth="2" />
+      <path d="M24 8v8M24 32v8M8 24h8M32 24h8" stroke="#E8B88A" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="24" cy="24" r="6" stroke="#E8B88A" strokeWidth="2" />
+      <path d="M20 24l3 3 5-5" stroke="#E8B88A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function BadgeAllmood1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <circle cx="16" cy="16" r="4" stroke="#D4A540" strokeWidth="1.5" />
+      <circle cx="32" cy="16" r="4" stroke="#D4A540" strokeWidth="1.5" />
+      <circle cx="24" cy="24" r="4" stroke="#D4A540" strokeWidth="1.5" />
+      <circle cx="16" cy="32" r="4" stroke="#D4A540" strokeWidth="1.5" />
+      <circle cx="32" cy="32" r="4" stroke="#D4A540" strokeWidth="1.5" />
     </svg>
   )
 }
