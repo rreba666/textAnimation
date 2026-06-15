@@ -33,6 +33,31 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   empty: <BadgeEmpty />,
   lookback: <BadgeLookBack />,
   master: <BadgeMaster />,
+  todos200: <BadgeTodos200 />,
+  todos500: <BadgeTodos500 />,
+  todos1000: <BadgeTodos1000 />,
+  links20: <BadgeLinks20 />,
+  links50: <BadgeLinks50 />,
+  links100: <BadgeLinks100 />,
+  streak15: <BadgeStreak15 />,
+  streak30: <BadgeStreak30 />,
+  habit90: <BadgeHabit90 />,
+  makeup3: <BadgeMakeup3 />,
+  makeup10: <BadgeMakeup10 />,
+  selfcare10: <BadgeSelfcare10 />,
+  selfcare30: <BadgeSelfcare30 />,
+  rainy3: <BadgeRainy3 />,
+  cloudy5: <BadgeCloudy5 />,
+  rest3: <BadgeRest3 />,
+  tears1: <BadgeTears1 />,
+  forgive5: <BadgeForgive5 />,
+  blank5: <BadgeBlank5 />,
+  goodnight5: <BadgeGoodnight5 />,
+  symmetry1: <BadgeSymmetry1 />,
+  midnight10: <BadgeMidnight10 />,
+  oneyear1: <BadgeOneyear1 />,
+  perfect1: <BadgePerfect1 />,
+  badge15: <BadgeBadge15 />,
 }
 
 // ---- SVG 徽章图标 ----
@@ -134,6 +159,278 @@ function BadgeMaster() {
       <rect x="12" y="10" width="24" height="28" rx="3" stroke="#D4A540" strokeWidth="2" />
       <path d="M16 20h16M16 26h12" stroke="#D4A540" strokeWidth="1.8" strokeLinecap="round" />
       <path d="M28 30l4 4M32 30l-4 4" stroke="#D4A540" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// ---- 新增勋章 SVG 图标 ----
+function BadgeTodos200() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#9CAF88" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#9CAF88" strokeWidth="2" />
+      <path d="M16 24l4 4 8-8" stroke="#9CAF88" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 30l4 4 8-8" stroke="#9CAF88" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeTodos500() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#C4A484" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#C4A484" strokeWidth="2" />
+      <path d="M16 24l4 4 8-8" stroke="#C4A484" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 30l4 4 8-8" stroke="#C4A484" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 36l4 4 8-8" stroke="#C4A484" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeTodos1000() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <path d="M12 20l8 8 3-6 5 10 4-5 4 3" stroke="#D4A540" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="24" cy="16" r="1.5" fill="#D4A540" />
+    </svg>
+  )
+}
+function BadgeLinks20() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#C4A484" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#C4A484" strokeWidth="2" />
+      <path d="M18 24h12M18 24c0 0 4-8 10-8s10 8 10 8M18 24c0 0 4 8 10 8" stroke="#C4A484" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="30" cy="18" r="1.5" fill="#C4A484" />
+    </svg>
+  )
+}
+function BadgeLinks50() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#B5A0D0" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#B5A0D0" strokeWidth="2" />
+      <path d="M14 20h20M14 28h14M14 32h10" stroke="#B5A0D0" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="36" cy="24" r="1.5" fill="#B5A0D0" />
+    </svg>
+  )
+}
+function BadgeLinks100() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <rect x="12" y="12" width="24" height="24" rx="4" stroke="#D4A540" strokeWidth="1.8" />
+      <path d="M16 20h16M16 26h12M16 32h8" stroke="#D4A540" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeStreak15() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A5A5" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A5A5" strokeWidth="2" />
+      <path d="M24 8c-6 4-10 10-10 16 0 5.5 4.5 10 10 10s10-4.5 10-10c0-6-4-12-10-16z" stroke="#D4A5A5" strokeWidth="1.8" />
+      <circle cx="24" cy="24" r="4" fill="#D4A5A5" opacity="0.3" />
+    </svg>
+  )
+}
+function BadgeStreak30() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#E8B88A" strokeWidth="2" />
+      <circle cx="24" cy="24" r="12" stroke="#E8B88A" strokeWidth="1.5" />
+      <circle cx="24" cy="24" r="6" fill="#E8B88A" opacity="0.3" />
+      <circle cx="24" cy="24" r="2" fill="#E8B88A" />
+    </svg>
+  )
+}
+function BadgeHabit90() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#9CAF88" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#9CAF88" strokeWidth="2" />
+      <path d="M12 24c0 0 4-8 12-8s12 8 12 8" stroke="#9CAF88" strokeWidth="2" strokeLinecap="round" />
+      <path d="M16 20c2-3 5-5 8-5" stroke="#9CAF88" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M14 28c2 3 5 5 10 5s10-5 10-5" stroke="#9CAF88" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeMakeup3() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#7B8DB8" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#7B8DB8" strokeWidth="2" />
+      <circle cx="24" cy="20" r="8" stroke="#7B8DB8" strokeWidth="1.5" strokeDasharray="4 2" />
+      <path d="M20 20l2 2 6-6" stroke="#7B8DB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function BadgeMakeup10() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#B5A0D0" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#B5A0D0" strokeWidth="2" />
+      <circle cx="24" cy="20" r="10" stroke="#B5A0D0" strokeWidth="1.5" strokeDasharray="6 3" />
+      <path d="M18 22l2 2 8-8" stroke="#B5A0D0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 28l2 2 5-5" stroke="#B5A0D0" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeSelfcare10() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#E8B88A" strokeWidth="2" />
+      <path d="M24 12v4M24 32v4M12 24h4M32 24h4" stroke="#E8B88A" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="24" cy="22" r="6" stroke="#E8B88A" strokeWidth="1.5" />
+      <path d="M22 18c1-1 3-1 4 0" stroke="#E8B88A" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeSelfcare30() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A5A5" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A5A5" strokeWidth="2" />
+      <path d="M22 12c-4 2-6 6-6 10s4 10 8 10 8-4 8-10-2-8-6-10" stroke="#D4A5A5" strokeWidth="1.8" />
+      <path d="M24 20v4M22 22h4" stroke="#D4A5A5" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// ---- 心情相关 SVG 图标 ----
+function BadgeRainy3() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#7B8DB8" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#7B8DB8" strokeWidth="2" />
+      <path d="M16 14c-4 2-6 6-4 10" stroke="#7B8DB8" strokeWidth="2" strokeLinecap="round" />
+      <path d="M22 10l-1 3M30 10l1 3" stroke="#7B8DB8" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M15 28l4 4 8-10" stroke="#7B8DB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function BadgeCloudy5() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#B0B8C0" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#B0B8C0" strokeWidth="2" />
+      <path d="M14 20c0 0 4-6 10-6s10 6 10 6" stroke="#B0B8C0" strokeWidth="2" strokeLinecap="round" />
+      <path d="M18 26c0 0 2 3 6 3s6-3 6-3" stroke="#B0B8C0" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="24" cy="16" r="1.5" fill="#B0B8C0" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeRest3() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#9CAF88" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#9CAF88" strokeWidth="2" />
+      <path d="M16 24h16M16 30h12" stroke="#9CAF88" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M20 14c-2 2-2 6 0 8s6 2 8 0" stroke="#9CAF88" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeTears1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#C8A86B" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#C8A86B" strokeWidth="2" />
+      <path d="M16 28c2-4 6-6 10-4" stroke="#C8A86B" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="18" cy="22" r="1.5" fill="#C8A86B" />
+      <path d="M18 22v4" stroke="#C8A86B" strokeWidth="1" strokeLinecap="round" />
+      <path d="M30 18c2 3 2 7 0 10" stroke="#C8A86B" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="30" cy="28" r="1" fill="#C8A86B" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeForgive5() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A5A5" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A5A5" strokeWidth="2" />
+      <path d="M18 30c0 0 2-6 6-6s6 6 6 6" stroke="#D4A5A5" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="24" cy="18" r="5" stroke="#D4A5A5" strokeWidth="1.5" />
+      <path d="M22 18l1 1 3-3" stroke="#D4A5A5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function BadgeBlank5() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#B0B8C0" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#B0B8C0" strokeWidth="1.5" strokeDasharray="6 3" />
+      <rect x="14" y="14" width="20" height="20" rx="3" stroke="#B0B8C0" strokeWidth="1.5" />
+      <path d="M18 22h12" stroke="#B0B8C0" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+function BadgeGoodnight5() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#5B6EF5" opacity="0.08" />
+      <circle cx="24" cy="24" r="22" stroke="#5B6EF5" strokeWidth="2" />
+      <path d="M30 8c-6 3-10 10-8 18" stroke="#5B6EF5" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="24" cy="28" r="2" fill="#5B6EF5" opacity="0.5" />
+      <line x1="24" y1="32" x2="24" y2="36" stroke="#5B6EF5" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// ---- 特殊成就 SVG 图标 ----
+function BadgeSymmetry1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#B5A0D0" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#B5A0D0" strokeWidth="2" />
+      <line x1="24" y1="2" x2="24" y2="46" stroke="#B5A0D0" strokeWidth="1" strokeDasharray="3 3" opacity="0.3" />
+      <path d="M14 16l5 5-3 3 5 5M34 16l-5 5 3 3-5 5" stroke="#B5A0D0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+function BadgeMidnight10() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#3B4B8A" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#3B4B8A" strokeWidth="2" />
+      <path d="M30 6c-8 4-12 14-8 24" stroke="#3B4B8A" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="24" cy="28" r="3" fill="#3B4B8A" opacity="0.3" />
+      <circle cx="24" cy="36" r="1.5" fill="#3B4B8A" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeOneyear1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <circle cx="24" cy="24" r="14" stroke="#D4A540" strokeWidth="1.5" strokeDasharray="4 2" />
+      <path d="M24 14v5M24 29v5M14 24h5M29 24h5" stroke="#D4A540" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="24" cy="24" r="2" fill="#D4A540" />
+    </svg>
+  )
+}
+function BadgePerfect1() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#E8B88A" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#E8B88A" strokeWidth="2" />
+      <circle cx="24" cy="24" r="8" stroke="#E8B88A" strokeWidth="2" />
+      <path d="M20 24l3 3 5-5" stroke="#E8B88A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="24" cy="10" r="1.5" fill="#E8B88A" opacity="0.5" />
+    </svg>
+  )
+}
+function BadgeBadge15() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" fill="#D4A540" opacity="0.1" />
+      <circle cx="24" cy="24" r="22" stroke="#D4A540" strokeWidth="2" />
+      <path d="M12 34l4-12 4 8 4-10 4 10 4-8 4 12" stroke="#D4A540" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="20" cy="16" r="1.5" fill="#D4A540" opacity="0.5" />
+      <circle cx="36" cy="22" r="1.5" fill="#D4A540" opacity="0.3" />
     </svg>
   )
 }

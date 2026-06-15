@@ -211,7 +211,7 @@ export default function Habits() {
 
       {/* 周视图 */}
       {viewMode === 'week' && (
-        <div className="max-h-[320px] overflow-y-auto custom-scrollbar -mx-1 px-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar -mx-1 px-1 min-h-0 max-h-[400px]">
           {habits.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-text-light">
               <CheckCircle2 size={40} className="opacity-30 mb-2" />

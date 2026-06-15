@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import {
   Clock, Search, X, MapPin, Droplets, Wind,
   Sun, Moon, Cloud, CloudFog, CloudDrizzle, CloudRain, CloudSnow, CloudLightning, CloudSun,
-  LayoutGrid, Palette, HelpCircle, Award,
+  LayoutGrid, Palette, HelpCircle, Award, Smile, Meh, Frown, Zap, BatteryLow,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -375,9 +375,10 @@ export default function Header() {
           <BackgroundPicker open={showBgPicker} onClose={() => setShowBgPicker(false)} />
         </div>
 
-        {/* 每日一言（天气下方） */}
-        <div className="w-full hidden sm:block">
+        {/* 每日一言 + 心情选择器（两端对齐） */}
+        <div className="w-full hidden sm:flex items-center justify-between">
           <DailyQuote />
+          <MoodPicker />
         </div>
       </div>
 
@@ -392,5 +393,40 @@ export default function Header() {
       {/* 分隔线 */}
       <div className="h-px mx-4 sm:mx-6 bg-gradient-to-r from-transparent via-warm-orange/20 to-transparent" />
     </header>
+  )
+}
+
+/** 每日心情选择器 */
+function MoodPicker() {
+  const moodRecords = useDashboardStore((s) => s.moodRecords)
+  const setTodayMood = useDashboardStore((s) => s.setTodayMood)
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const current = moodRecords[today] || ''
+
+  const moods = [
+    { key: 'happy', icon: <Smile size={14} />, label: '开心' },
+    { key: 'calm', icon: <Meh size={14} />, label: '平静' },
+    { key: 'sad', icon: <Frown size={14} />, label: '难过' },
+    { key: 'energy', icon: <Zap size={14} />, label: '干劲' },
+    { key: 'tired', icon: <BatteryLow size={14} />, label: '疲惫' },
+  ]
+
+  return (
+    <div className="flex items-center gap-0.5 bg-notebook-bg/60 rounded-lg p-0.5">
+      {moods.map((m) => (
+        <button
+          key={m.key}
+          onClick={() => setTodayMood(current === m.key ? '' : m.key)}
+          className={`p-1 rounded-md transition-colors ${
+            current === m.key
+              ? 'bg-[rgb(var(--bg-card))] shadow-sm'
+              : 'text-text-light hover:text-text-secondary'
+          }`}
+          title={m.label}
+        >
+          {m.icon}
+        </button>
+      ))}
+    </div>
   )
 }

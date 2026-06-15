@@ -13,12 +13,15 @@ interface DashboardState {
 
   // --- 待办事项 ---
   todos: Todo[]
-  addTodo: (text: string) => void
+  totalTodoCompleted: number    // 累计完成数（只增不减，成就统计依据）
+  totalHabitCheckDays: number   // 累计打卡天数（只增不减，成就统计依据）
+  addTodo: (text: string, dueDate?: string) => void
   toggleTodo: (id: string) => void
   deleteTodo: (id: string) => void
   editTodo: (id: string, text: string) => void
   reorderTodos: (fromId: string, toId: string) => void
   setTodoReminder: (id: string, reminderAt: string | null) => void
+  clearCompletedTodos: () => void
 
   // --- 习惯打卡 ---
   habits: Habit[]
@@ -72,6 +75,10 @@ interface DashboardState {
   earlyCheckinDates: string[]
   lateNightNoteDates: string[]
   viewedOldNoteDates: string[]
+  moodRecords: Record<string, string>
+  lateNightVisits: number             // 0点后访问次数
+  setTodayMood: (mood: string) => void
+  incrementLateNightVisit: () => void
 }
 
 // 预设习惯列表
@@ -99,30 +106,39 @@ export const useDashboardStore = create<DashboardState>()(
 
       // ===== 待办事项 =====
       todos: [],
+      totalTodoCompleted: 0,
+      totalHabitCheckDays: 0,
 
-      addTodo: (text: string) => {
+      addTodo: (text: string, dueDate?: string) => {
         if (!text.trim()) return
         const todo: Todo = {
           id: generateId(),
           text: text.trim(),
           completed: false,
           createdAt: new Date().toISOString(),
+          dueDate: dueDate || undefined,
         }
         set((s) => ({ todos: [todo, ...s.todos] }))
       },
 
       toggleTodo: (id: string) => {
-        set((s) => ({
-          todos: s.todos.map((t) =>
-            t.id === id
-              ? { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
-              : t,
-          ),
-        }))
+        set((s) => {
+          let inc = 0
+          const updated = s.todos.map((t) => {
+            if (t.id !== id) return t
+            if (!t.completed) inc = 1 // 标记为完成 → 累计+1
+            return { ...t, completed: !t.completed, completedAt: !t.completed ? new Date().toISOString() : undefined }
+          })
+          return { todos: updated, totalTodoCompleted: s.totalTodoCompleted + inc }
+        })
       },
 
       deleteTodo: (id: string) => {
         set((s) => ({ todos: s.todos.filter((t) => t.id !== id) }))
+      },
+
+      clearCompletedTodos: () => {
+        set((s) => ({ todos: s.todos.filter((t) => !t.completed) }))
       },
 
       editTodo: (id: string, text: string) => {
@@ -181,25 +197,23 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => {
           const dayRecords = s.habitRecords[date] || []
           const exists = dayRecords.includes(habitId)
-          // 判断是否为补签：日期不是今天
           const todayStr = format(new Date(), 'yyyy-MM-dd')
           const isMakeup = date !== todayStr
-          // 补签记录单独追踪
           const makeupDayRecords = s.makeupRecords[date] || []
           const newMakeupRecords = { ...s.makeupRecords }
           if (!exists && isMakeup) {
             newMakeupRecords[date] = [...makeupDayRecords, habitId]
           } else if (exists) {
-            // 取消打卡时同步清除补签标记
             newMakeupRecords[date] = makeupDayRecords.filter((id) => id !== habitId)
             if (newMakeupRecords[date].length === 0) delete newMakeupRecords[date]
           }
-          // 追踪早起打卡（早上 8 点前）—— 成就：晨间诗人
           const now = new Date()
           const isEarly = now.getHours() < 8
           const newEarlyDates = !exists && isEarly && !s.earlyCheckinDates.includes(todayStr)
             ? [...s.earlyCheckinDates, todayStr]
             : s.earlyCheckinDates
+          // 该日期首次打卡 → 累计天数 +1
+          const isNewDay = !exists && dayRecords.length === 0
           return {
             habitRecords: {
               ...s.habitRecords,
@@ -207,6 +221,7 @@ export const useDashboardStore = create<DashboardState>()(
             },
             makeupRecords: newMakeupRecords,
             earlyCheckinDates: newEarlyDates,
+            totalHabitCheckDays: s.totalHabitCheckDays + (isNewDay ? 1 : 0),
           }
         })
       },
@@ -398,13 +413,27 @@ export const useDashboardStore = create<DashboardState>()(
       earlyCheckinDates: [],
       lateNightNoteDates: [],
       viewedOldNoteDates: [],
+      moodRecords: {},
+      lateNightVisits: 0,
+
+      setTodayMood: (mood: string) => {
+        const today = format(new Date(), 'yyyy-MM-dd')
+        set((s) => ({ moodRecords: { ...s.moodRecords, [today]: mood } }))
+      },
+
+      incrementLateNightVisit: () => {
+        set((s) => ({ lateNightVisits: s.lateNightVisits + 1 }))
+      },
     }),
     {
       name: 'dashboard_store',
+      version: 2,
       // 只持久化数据字段，不持久化方法
       partialize: (state) => ({
         theme: state.theme,
         todos: state.todos,
+        totalTodoCompleted: state.totalTodoCompleted,
+        totalHabitCheckDays: state.totalHabitCheckDays,
         habits: state.habits,
         habitRecords: state.habitRecords,
         makeupRecords: state.makeupRecords,
@@ -423,7 +452,30 @@ export const useDashboardStore = create<DashboardState>()(
         earlyCheckinDates: state.earlyCheckinDates,
         lateNightNoteDates: state.lateNightNoteDates,
         viewedOldNoteDates: state.viewedOldNoteDates,
+        moodRecords: state.moodRecords,
+        lateNightVisits: state.lateNightVisits,
       }),
+      // 数据迁移：旧版字段补全 + totalTodoCompleted 初始化
+      migrate: (persistedState: any, _version: number) => {
+        if (persistedState?.todos) {
+          persistedState.todos = persistedState.todos.map((t: any) => ({
+            ...t,
+            completedAt: t.completed && !t.completedAt ? new Date().toISOString() : (t.completedAt || undefined),
+            dueDate: t.dueDate || undefined,
+            deletedAt: undefined, // 清理旧版软删除标记
+          }))
+        }
+        // 初始化累计完成数（从历史已完成待办统计）
+        if (persistedState && persistedState.totalTodoCompleted === undefined) {
+          const completed = persistedState.todos?.filter((t: any) => t.completed && t.completedAt).length || 0
+          persistedState.totalTodoCompleted = completed
+        }
+        // 初始化累计打卡天数
+        if (persistedState && persistedState.totalHabitCheckDays === undefined) {
+          persistedState.totalHabitCheckDays = Object.keys(persistedState.habitRecords || {}).length
+        }
+        return persistedState
+      },
     },
   ),
 )

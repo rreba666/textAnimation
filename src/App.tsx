@@ -296,6 +296,17 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
+  // ---- 深夜访问 + 首次访问追踪 ----
+  useEffect(() => {
+    if (!localStorage.getItem('re_first_visit_date')) {
+      localStorage.setItem('re_first_visit_date', format(new Date(), 'yyyy-MM-dd'))
+    }
+    const hour = new Date().getHours()
+    if (hour >= 0 && hour < 5) {
+      useDashboardStore.getState().incrementLateNightVisit()
+    }
+  }, [])
+
   // ---- 成就检测：用 vanilla subscribe 在 React 渲染周期外运行，避免每次状态变更引发全树重渲染 ----
   const runAchievementCheck = useRef(() => {
     const newBadges = checkAchievementsRaw()

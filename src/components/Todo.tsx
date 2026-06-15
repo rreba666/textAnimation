@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { ClipboardList, Plus, Trash2, Check, X, GripVertical, Bell, BellRing } from 'lucide-react'
+import { ClipboardList, Plus, Trash2, Check, X, GripVertical, Bell, BellRing, TrashIcon } from 'lucide-react'
+import { format as formatDate } from 'date-fns'
 import gsap from 'gsap'
 import {
   DndContext,
@@ -19,7 +20,13 @@ import MonthlyTrend from './MonthlyTrend'
 import AnimatedNumber from './AnimatedNumber'
 import type { FilterType, Todo as TodoType } from '../types'
 
-const FILTER_TABS: { key: FilterType; label: string }[] = [
+const DATE_TABS: { key: FilterType; label: string }[] = [
+  { key: 'today', label: '今日' },
+  { key: 'tomorrow', label: '明日' },
+  { key: 'future', label: '未来' },
+]
+
+const STATUS_TABS: { key: FilterType | 'all'; label: string }[] = [
   { key: 'all', label: '全部' },
   { key: 'active', label: '未完成' },
   { key: 'completed', label: '已完成' },
@@ -70,7 +77,6 @@ function SortableItem({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: todo.id })
 
   const style: React.CSSProperties = {
-    // 只取 translate，忽略 scaleX/scaleY 避免挤压变形
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: isDragging ? 'none' : transition,
     opacity: isDragging ? 0.3 : todo.completed ? 0.6 : 1,
@@ -90,12 +96,10 @@ function SortableItem({
           : 'hover:bg-notebook-bg/60 dark:hover:bg-white/5'
       }`}
       onClick={(e) => {
-        // 不拦截按钮点击
         if ((e.target as HTMLElement).closest('button')) return
         onSelect()
       }}
     >
-      {/* 拖拽手柄 */}
       <span
         {...attributes}
         {...listeners}
@@ -104,7 +108,6 @@ function SortableItem({
         <GripVertical size={14} />
       </span>
 
-      {/* 复选框 */}
       <button
         onClick={onToggle}
         className={`flex items-center justify-center w-5 h-5 rounded-md border-2 shrink-0 transition-all duration-200 ${
@@ -114,7 +117,6 @@ function SortableItem({
         {todo.completed && <Check size={12} className="text-white" />}
       </button>
 
-      {/* 编辑 / 显示 */}
       {isEditing ? (
         <div className="flex items-center gap-1 flex-1">
           <input
@@ -129,25 +131,29 @@ function SortableItem({
         </div>
       ) : (
         <span
-          className={`flex-1 text-sm cursor-pointer select-none ${todo.completed ? 'line-through text-text-light' : 'text-text-primary'}`}
+          className={`flex-1 text-sm cursor-pointer select-none truncate whitespace-nowrap ${todo.completed ? 'line-through text-text-light' : 'text-text-primary'}`}
           onDoubleClick={onDoubleClick}
           title="双击编辑"
         >
           {todo.text}
+          {todo.dueDate && !todo.completed && (
+            <span className={`ml-1.5 text-[10px] px-1 py-0.5 rounded whitespace-nowrap ${
+              todo.dueDate < formatDate(new Date(), 'yyyy-MM-dd') ? 'text-red-400 bg-red-50 dark:bg-red-900/20' : 'text-text-light bg-notebook-bg'
+            }`}>
+              {formatDate(new Date(todo.dueDate), 'M/d')}
+            </span>
+          )}
         </span>
       )}
 
-      {/* 操作按钮 */}
       {!isEditing && (
         <>
-          {/* 提醒 */}
           {!todo.completed && (
             <div className="relative">
               <button
                 onClick={(e) => {
                   const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
                   onReminderClick()
-                  // 延迟一帧等 React 渲染 portal 后再定位
                   requestAnimationFrame(() => {
                     const popup = document.getElementById('reminder-popup-portal')
                     if (popup) {
@@ -165,7 +171,6 @@ function SortableItem({
               </button>
             </div>
           )}
-          {/* 删除 */}
           <button onClick={onDelete} className="p-1 rounded-lg text-text-light hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all">
             <Trash2 size={14} />
           </button>
@@ -184,8 +189,10 @@ export default function Todo() {
   const editTodo = useDashboardStore((s) => s.editTodo)
   const reorderTodos = useDashboardStore((s) => s.reorderTodos)
   const setTodoReminder = useDashboardStore((s) => s.setTodoReminder)
+  const clearCompletedTodos = useDashboardStore((s) => s.clearCompletedTodos)
 
-  const [filter, setFilter] = useState<FilterType>('all')
+  const [dateFilter, setDateFilter] = useState<FilterType>('today')
+  const [statusFilter, setStatusFilter] = useState<FilterType | null>(null)
   const [inputValue, setInputValue] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
@@ -193,10 +200,29 @@ export default function Todo() {
   const [reminderId, setReminderId] = useState<string | null>(null)
   const [reminderTime, setReminderTime] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [dueDate, setDueDate] = useState(() => formatDate(new Date(), 'yyyy-MM-dd'))
+
+  const todayStr = formatDate(new Date(), 'yyyy-MM-dd')
+  const tomorrowStr = formatDate(new Date(Date.now() + 86400000), 'yyyy-MM-dd')
+
+  const handleDateFilter = (key: FilterType) => {
+    setDateFilter(key)
+    setStatusFilter(null)
+    if (key === 'today') setDueDate(todayStr)
+    else if (key === 'tomorrow') setDueDate(tomorrowStr)
+  }
+
+  const handleStatusFilter = (key: string) => {
+    if (key === 'all') { setStatusFilter(null); setDateFilter('all'); return }
+    setStatusFilter(statusFilter === key ? null : key as FilterType)
+  }
 
   const filtered = todos.filter((t) => {
-    if (filter === 'active') return !t.completed
-    if (filter === 'completed') return t.completed
+    if (statusFilter === 'active') return !t.completed
+    if (statusFilter === 'completed') return t.completed
+    if (dateFilter === 'today') return !t.completed && t.dueDate === todayStr
+    if (dateFilter === 'tomorrow') return !t.completed && t.dueDate === tomorrowStr
+    if (dateFilter === 'future') return !t.completed && t.dueDate && t.dueDate > tomorrowStr
     return true
   })
 
@@ -208,7 +234,6 @@ export default function Todo() {
     return { done, total, percent: total > 0 ? Math.round((done / total) * 100) : 0 }
   }, [todos])
 
-  // GSAP 入场动画
   const itemRefs = useRef<Map<string, HTMLLIElement>>(new Map())
   const cardRef = useRef<HTMLDivElement>(null)
   const prevTodosLength = useRef(todos.length)
@@ -225,6 +250,7 @@ export default function Todo() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  // 入场动画
   useEffect(() => {
     if (todos.length > prevTodosLength.current) {
       const newCount = todos.length - prevTodosLength.current
@@ -239,7 +265,6 @@ export default function Todo() {
     prevTodosLength.current = todos.length
   }, [todos])
 
-  // 快捷键脉冲
   const pulseElement = useCallback((el: HTMLElement) => {
     gsap.fromTo(el,
       { scale: 1, boxShadow: '0 0 0 0 rgba(212,165,165,0)' },
@@ -260,22 +285,25 @@ export default function Todo() {
     return () => { window.removeEventListener('shortcut:focus-todo', handleShortcut); window.removeEventListener('shortcut:edit-todo', handleShortcut) }
   }, [todos, pulseElement])
 
-  // 删除
   const deletingIds = useRef<Set<string>>(new Set())
   const handleDelete = (id: string) => {
     if (deletingIds.current.has(id)) return
     const todo = todos.find((t) => t.id === id); if (!todo) return
     deletingIds.current.add(id)
     const el = itemRefs.current.get(id)
-    const snapshot = { text: todo.text, completed: todo.completed }
+    const snapshot = { text: todo.text, completed: todo.completed, dueDate: todo.dueDate }
     const doRemove = () => {
       deleteTodo(id); deletingIds.current.delete(id)
       showToast({
         message: `已删除「${snapshot.text.slice(0, 10)}${snapshot.text.length > 10 ? '...' : ''}」`,
         showUndo: true,
         onUndo: () => {
-          const store = useDashboardStore.getState(); store.addTodo(snapshot.text)
-          if (snapshot.completed) { const r = store.todos[store.todos.length - 1]; if (r) store.toggleTodo(r.id) }
+          const store = useDashboardStore.getState()
+          store.addTodo(snapshot.text, snapshot.dueDate)
+          if (snapshot.completed) {
+            const r = store.todos[store.todos.length - 1]
+            if (r) store.toggleTodo(r.id)
+          }
         },
       })
     }
@@ -283,7 +311,7 @@ export default function Todo() {
     else doRemove()
   }
 
-  // Delete 键删除选中待办
+  // Delete 键删除选中
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key !== 'Delete' && e.key !== 'Del') return
@@ -296,9 +324,12 @@ export default function Todo() {
     return () => window.removeEventListener('keydown', handler)
   }, [selectedId, editingId])
 
-  const handleAdd = () => { if (!inputValue.trim()) return; addTodo(inputValue); setInputValue('') }
+  const handleAdd = () => {
+    if (!inputValue.trim()) return
+    addTodo(inputValue.trim(), dueDate || undefined)
+    setInputValue('')
+  }
 
-  // dnd-kit 传感器
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
@@ -307,7 +338,6 @@ export default function Todo() {
     const { active, over } = e
     if (!over || active.id === over.id) return
     reorderTodos(active.id as string, over.id as string)
-    // GSAP 落地回弹
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const el = itemRefs.current.get(active.id as string)
@@ -318,23 +348,47 @@ export default function Todo() {
 
   return (
     <div ref={cardRef} className="card p-5 h-full flex flex-col">
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-text-primary">
+      {/* 标题栏：待办事项 + 操作按钮 + 状态标签 */}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="flex items-center gap-1.5 text-lg font-semibold text-text-primary shrink-0">
           <ClipboardList size={20} className="text-warm-orange" />待办事项
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <div className="flex bg-notebook-bg rounded-lg p-0.5 mr-1">
+            {STATUS_TABS.map((tab) => (
+              <button key={tab.key} onClick={() => handleStatusFilter(tab.key)}
+                className={`px-2 py-0.5 text-[11px] rounded-md transition-colors whitespace-nowrap ${
+                  (tab.key === 'all' && !statusFilter) || statusFilter === tab.key
+                    ? 'bg-[rgb(var(--bg-card))] text-warm-orange shadow-sm font-medium'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}>{tab.label}</button>
+            ))}
+          </div>
           <button onClick={() => setShowTrend(true)} className="p-1.5 rounded-lg hover:bg-notebook-bg dark:hover:bg-white/8 text-text-secondary hover:text-warm-orange transition-colors" title="月度趋势">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="4" strokeWidth="1.5" /><polyline points="7,15 10,10 13,13 17,7" />
             </svg>
           </button>
-          <div className="flex bg-notebook-bg rounded-lg p-0.5">
-            {FILTER_TABS.map((tab) => (
-              <button key={tab.key} onClick={() => setFilter(tab.key)} className={`px-2.5 py-1 text-xs rounded-md transition-colors ${filter === tab.key ? 'bg-white text-warm-orange shadow-sm font-medium' : 'text-text-secondary hover:text-text-primary'}`}>{tab.label}</button>
-            ))}
-          </div>
+          {todos.some((t) => t.completed) && (
+            <button
+              onClick={() => {
+                const count = todos.filter((t) => t.completed).length
+                clearCompletedTodos()
+                showToast({ message: `已清空 ${count} 条已完成待办` })
+              }}
+              className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-text-light hover:text-red-400 transition-colors"
+              title="清空已完成"
+            >
+              <TrashIcon size={14} />
+            </button>
+          )}
         </div>
+      </div>
+      {/* 日期筛选标签 */}
+      <div className="flex bg-notebook-bg rounded-lg p-0.5 mb-3 w-fit">
+        {DATE_TABS.map((tab) => (
+          <button key={tab.key} onClick={() => handleDateFilter(tab.key)} className={`px-2.5 py-1 text-xs rounded-md transition-colors whitespace-nowrap ${dateFilter === tab.key && !statusFilter ? 'bg-[rgb(var(--bg-card))] text-warm-orange shadow-sm font-medium' : 'text-text-secondary hover:text-text-primary'}`}>{tab.label}</button>
+        ))}
       </div>
 
       {/* 进度统计 */}
@@ -350,21 +404,41 @@ export default function Todo() {
         </div>
       )}
 
-      {/* 添加输入 */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* 日期选择 + 输入 + 添加 */}
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+          className="w-[120px] px-2 py-1.5 text-xs border border-border-light rounded-lg outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary"
+          style={{ colorScheme: 'var(--color-scheme, auto)' }} />
+      </div>
+      <div className="flex items-center gap-1.5 mb-3">
         <input id="todo-input" ref={todoInputRef} type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-          placeholder="添加新的待办..." className="flex-1 px-3 py-2 text-sm border border-border-light rounded-xl outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary placeholder-text-light" />
-        <button onClick={handleAdd} className="flex items-center justify-center w-9 h-9 bg-warm-orange text-white rounded-xl hover:opacity-90 transition-opacity shrink-0" title="添加"><Plus size={18} /></button>
+          placeholder="添加待办..." className="flex-1 min-w-0 px-2.5 py-1.5 text-sm border border-border-light rounded-xl outline-none focus:border-warm-orange bg-notebook-bg/50 text-text-primary placeholder-text-light" />
+        <button onClick={handleAdd} className="flex items-center justify-center w-8 h-8 bg-warm-orange text-white rounded-xl hover:opacity-90 transition-opacity shrink-0" title="添加"><Plus size={16} /></button>
       </div>
 
-      {/* 列表：DndContext 包裹滚动容器，无 DragOverlay（避免滚动坐标系错位） */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={filteredIds} strategy={rectSortingStrategy}>
           <div className="max-h-[260px] overflow-y-auto custom-scrollbar -mx-1 px-1">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-text-light">
                 <CheckCirclePlaceholder />
-                <span className="text-sm mt-3">{filter === 'completed' ? '还没有完成的事项' : '今天没有什么待办，休息一下吧'}</span>
+                <span className="text-sm mt-3">
+                  {statusFilter === 'completed' ? (
+                    '还没有完成的事项'
+                  ) : dateFilter === 'today' ? (
+                    <>
+                      <span className="block">歇一歇，也是待办的一种。</span>
+                      <span className="text-xs mt-1 opacity-60">今日已完成：好好休息</span>
+                    </>
+                  ) : dateFilter === 'tomorrow' ? (
+                    <>
+                      <span className="block">明天还空着，可以到时候再说。</span>
+                      <span className="text-xs mt-1 opacity-60">未雨绸缪很好，但不急也很好</span>
+                    </>
+                  ) : (
+                    '还没有待办，点击添加开始吧'
+                  )}
+                </span>
               </div>
             ) : (
               <ul className="space-y-1">
@@ -398,7 +472,6 @@ export default function Todo() {
         </SortableContext>
       </DndContext>
 
-      {/* 提醒时间选择器 Portal（脱离滚动容器，失焦自动关闭） */}
       {reminderId && createPortal(
         <div className="fixed inset-0 z-[79]" onClick={() => setReminderId(null)} />,
         document.body

@@ -60,6 +60,13 @@ const BASE_STEPS: GuideStep[] = [
     placement: 'left',
   },
   {
+    selector: 'button[title="开心"], button[title="平静"]',
+    fallbackTitle: '每日心情',
+    title: '每日心情',
+    description: '记录今天的心情状态：开心、平静、难过、干劲、疲惫。心情数据会用于成就统计，也让你回顾时看见自己的情绪轨迹。',
+    placement: 'bottom',
+  },
+  {
     selector: 'button[title="安装到桌面"]',
     fallbackTitle: '安装到桌面',
     title: '安装到桌面',
